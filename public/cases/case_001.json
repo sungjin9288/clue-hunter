@@ -1,0 +1,302 @@
+{
+  "schemaVersion": "0.1",
+  "caseId": "case_001",
+  "title": "CASE 001: Rainline Contradiction",
+  "synopsis": "폭우가 멎은 밤, 시계와 통화기록 사이에 시간이 갈라졌다.",
+  "meta": { "tone": "hardboiled", "estimatedMinutes": 25, "difficulty": 1 },
+
+  "characters": {
+    "victim": { "id": "victim", "name": "Jung Haneul", "bio": "재개발 입찰 자료를 보관하던 브로커." },
+    "suspects": [
+      {
+        "id": "s1",
+        "name": "Kang Dojin",
+        "bio": "피해자의 사업 파트너.",
+        "alibiClaim": "21:10~21:30 동안 강변 카페에 있었다."
+      },
+      {
+        "id": "s2",
+        "name": "Oh Yerim",
+        "bio": "피해자의 전 비서.",
+        "alibiClaim": "21:00 이후 집에 있었다."
+      }
+    ],
+    "witnesses": [
+      { "id": "w1", "name": "Choi Namil", "bio": "주차장 경비." }
+    ]
+  },
+
+  "scenes": [
+    {
+      "sceneId": "scene_1",
+      "title": "Riverside Parking",
+      "descriptionMd": "젖은 주차장 바닥에 타이어 자국이 얇게 남아 있다.",
+      "hotspots": [
+        {
+          "hotspotId": "hs_1",
+          "label": "주차권",
+          "descriptionMd": "출차 시간: **21:11**",
+          "rewardClueIds": ["clue_1"]
+        },
+        {
+          "hotspotId": "hs_2",
+          "label": "혈흔 점적",
+          "descriptionMd": "피해자 사무실 방향으로 끊어진다.",
+          "rewardClueIds": ["clue_2"]
+        }
+      ]
+    },
+    {
+      "sceneId": "scene_2",
+      "title": "Victim Office",
+      "descriptionMd": "조명이 꺼져 있지만 책상 위 서류만 깔끔히 사라졌다.",
+      "hotspots": [
+        {
+          "hotspotId": "hs_3",
+          "label": "멈춘 벽시계",
+          "descriptionMd": "벽시계가 **21:14**에 멈춤.",
+          "rewardClueIds": ["clue_3"]
+        },
+        {
+          "hotspotId": "hs_4",
+          "label": "찢긴 계약서",
+          "descriptionMd": "수익 배분 조항이 찢겨 있다.",
+          "rewardClueIds": ["clue_4"]
+        }
+      ]
+    }
+  ],
+
+  "documents": [
+    {
+      "docId": "doc_1",
+      "title": "Cafe Receipt",
+      "type": "receipt",
+      "bodyMd": "결제 시간 **20:52**, 이후 추가 주문 기록 없음.",
+      "rewardClueIds": ["clue_5"]
+    },
+    {
+      "docId": "doc_2",
+      "title": "Call Detail",
+      "type": "calllog",
+      "bodyMd": "피해자-용의자 통화: **21:16**, 14초.",
+      "rewardClueIds": ["clue_6"]
+    },
+    {
+      "docId": "doc_3",
+      "title": "Transfer Memo",
+      "type": "memo",
+      "bodyMd": "대금 8천만원 이체 예정 시각: **21:30**.",
+      "rewardClueIds": ["clue_7"]
+    }
+  ],
+
+  "clues": [
+    {
+      "clueId": "clue_1",
+      "title": "Parking Exit 21:11",
+      "text": "카페 알리바이와 충돌하는 출차 기록.",
+      "tags": { "time": "21:11", "location": "Parking", "personId": "s1" },
+      "source": { "type": "scene", "id": "hs_1" }
+    },
+    {
+      "clueId": "clue_2",
+      "title": "Blood Drip Path",
+      "text": "주차장에서 사무실까지 이어지는 이동 흔적.",
+      "tags": { "location": "Parking->Office" },
+      "source": { "type": "scene", "id": "hs_2" }
+    },
+    {
+      "clueId": "clue_3",
+      "title": "Wall Clock 21:14",
+      "text": "충격으로 정지한 벽시계.",
+      "tags": { "time": "21:14", "location": "Office" },
+      "source": { "type": "scene", "id": "hs_3" }
+    },
+    {
+      "clueId": "clue_4",
+      "title": "Torn Contract",
+      "text": "수익 배분 갈등 정황.",
+      "tags": { "personId": "s1", "location": "Office" },
+      "source": { "type": "scene", "id": "hs_4" }
+    },
+    {
+      "clueId": "clue_5",
+      "title": "No Order After 20:52",
+      "text": "카페 장시간 체류 주장 약화.",
+      "tags": { "time": "20:52", "personId": "s1" },
+      "source": { "type": "doc", "id": "doc_1" }
+    },
+    {
+      "clueId": "clue_6",
+      "title": "Call at 21:16",
+      "text": "피해자의 추정 사망 시각과 모순.",
+      "tags": { "time": "21:16", "personId": "s1" },
+      "source": { "type": "doc", "id": "doc_2" }
+    },
+    {
+      "clueId": "clue_7",
+      "title": "Transfer Motive",
+      "text": "21:30 이체가 성사되면 s1에게 불리한 계약.",
+      "tags": { "time": "21:30", "personId": "s1" },
+      "source": { "type": "doc", "id": "doc_3" }
+    },
+    {
+      "clueId": "clue_8",
+      "title": "Interrogation Slip",
+      "text": "s1이 21:10 이후 카페에 없었다고 실토.",
+      "tags": { "time": "21:10", "personId": "s1" },
+      "source": { "type": "interrogation", "id": "s1_succ_01" }
+    }
+  ],
+
+  "interrogations": [
+    {
+      "characterId": "s1",
+      "startNodeId": "s1_01",
+      "nodes": [
+        {
+          "nodeId": "s1_01",
+          "speakerId": "s1",
+          "text": "난 카페에 계속 있었다.",
+          "choices": [
+            { "choiceId": "c1", "label": "영수증 확인", "nextNodeId": "s1_02" },
+            {
+              "choiceId": "c2",
+              "label": "주차권 제시",
+              "evidenceCheck": {
+                "acceptedClueIds": ["clue_1"],
+                "successNodeId": "s1_succ_01",
+                "failNodeId": "s1_fail_01",
+                "grantClueIds": ["clue_8"]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "s1_02",
+          "speakerId": "s1",
+          "text": "영수증은 결제 시각일 뿐이야.",
+          "choices": [
+            {
+              "choiceId": "c3",
+              "label": "21:16 통화기록 제시",
+              "evidenceCheck": {
+                "acceptedClueIds": ["clue_6"],
+                "successNodeId": "s1_succ_01",
+                "failNodeId": "s1_fail_01",
+                "grantClueIds": ["clue_8"]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "s1_fail_01",
+          "speakerId": "s1",
+          "text": "그걸로는 증명 못 해.",
+          "choices": [{ "choiceId": "c4", "label": "다시 시작", "nextNodeId": "s1_01" }]
+        },
+        {
+          "nodeId": "s1_succ_01",
+          "speakerId": "s1",
+          "text": "그래, 21:10 이후 카페 밖에 있었다.",
+          "choices": [{ "choiceId": "c5", "label": "종료", "nextNodeId": "s1_end" }]
+        },
+        {
+          "nodeId": "s1_end",
+          "speakerId": "s1",
+          "text": "더는 말 안 하겠다.",
+          "choices": []
+        }
+      ]
+    }
+  ],
+
+  "timeline": {
+    "slots": [
+      {
+        "slotId": "t1",
+        "label": "20:52",
+        "allowedClueIds": ["clue_5"],
+        "hint": { "l1": "카페", "l2": "결제", "l3": "추가 주문 없음" }
+      },
+      {
+        "slotId": "t2",
+        "label": "21:11",
+        "allowedClueIds": ["clue_1", "clue_8"],
+        "hint": { "l1": "출차", "l2": "알리바이", "l3": "모순" }
+      },
+      {
+        "slotId": "t3",
+        "label": "21:14",
+        "allowedClueIds": ["clue_3"],
+        "hint": { "l1": "벽시계", "l2": "충격", "l3": "사건 시각" }
+      },
+      {
+        "slotId": "t4",
+        "label": "21:16",
+        "allowedClueIds": ["clue_6"],
+        "hint": { "l1": "통화", "l2": "피해자", "l3": "생존" }
+      },
+      {
+        "slotId": "t5",
+        "label": "21:30",
+        "allowedClueIds": ["clue_7"],
+        "hint": { "l1": "이체", "l2": "동기", "l3": "금전" }
+      }
+    ],
+    "solution": [
+      { "slotId": "t1", "clueId": "clue_5" },
+      { "slotId": "t2", "clueId": "clue_8" },
+      { "slotId": "t3", "clueId": "clue_3" },
+      { "slotId": "t4", "clueId": "clue_6" },
+      { "slotId": "t5", "clueId": "clue_7" }
+    ]
+  },
+
+  "report": {
+    "minEvidenceToSubmit": 3,
+    "questions": [
+      {
+        "qId": "q_killer",
+        "prompt": "범인은 누구인가?",
+        "options": [
+          { "id": "s1", "label": "Kang Dojin" },
+          { "id": "s2", "label": "Oh Yerim" }
+        ],
+        "correctOptionId": "s1",
+        "requiredClueSets": [["clue_1", "clue_8"], ["clue_6", "clue_8"]],
+        "hint": { "l1": "알리바이", "l2": "실토", "l3": "주차기록" }
+      },
+      {
+        "qId": "q_method",
+        "prompt": "수법은 무엇이었는가?",
+        "options": [
+          { "id": "m1", "label": "시간 조작 후 위장" },
+          { "id": "m2", "label": "우발적 사고" }
+        ],
+        "correctOptionId": "m1",
+        "requiredClueSets": [["clue_3", "clue_6"], ["clue_3", "clue_2"]],
+        "hint": { "l1": "벽시계", "l2": "통화기록", "l3": "현장 이동" }
+      },
+      {
+        "qId": "q_motive",
+        "prompt": "동기는 무엇인가?",
+        "options": [
+          { "id": "mo1", "label": "금전 손실 회피" },
+          { "id": "mo2", "label": "개인적 원한" }
+        ],
+        "correctOptionId": "mo1",
+        "requiredClueSets": [["clue_7", "clue_4"], ["clue_7", "clue_5"]],
+        "hint": { "l1": "이체", "l2": "계약서", "l3": "수익 배분" }
+      }
+    ]
+  },
+
+  "explanations": {
+    "summaryMd": "주차기록/통화기록/실토가 시간 모순을 고정한다.",
+    "fullSolutionMd": "s1은 카페 알리바이를 주장했으나 21:11 출차 기록과 21:16 통화기록, 심문 실토로 모순이 확정된다. 계약 손실을 피하려는 동기가 있었다."
+  },
+
+  "hintPolicy": { "maxUses": 3, "penaltyPerUse": 1 }
+}

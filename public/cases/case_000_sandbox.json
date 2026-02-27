@@ -1,0 +1,258 @@
+{
+  "schemaVersion": "0.1",
+  "caseId": "case_000_sandbox",
+  "title": "CASE 000: Cold Smoke",
+  "synopsis": "스모크 테스트용 5분 케이스. 시스템 동작 검증이 목적이다.",
+  "meta": { "tone": "hardboiled", "estimatedMinutes": 5, "difficulty": 1 },
+
+  "characters": {
+    "victim": { "id": "victim", "name": "Han Jiho", "bio": "골목에서 사망한 피해자." },
+    "suspects": [
+      {
+        "id": "s1",
+        "name": "Lee Doman",
+        "bio": "피해자와 금전 갈등이 있었다.",
+        "alibiClaim": "21:10에 택시 안에 있었다."
+      }
+    ],
+    "witnesses": [{ "id": "w1", "name": "Park Mina", "bio": "근처 편의점 점원." }]
+  },
+
+  "scenes": [
+    {
+      "sceneId": "scene_1",
+      "title": "Back Alley",
+      "descriptionMd": "비가 그친 골목. 바닥엔 아직 물이 남아 있다.",
+      "hotspots": [
+        {
+          "hotspotId": "hs_1",
+          "label": "깨진 시계",
+          "descriptionMd": "초침이 **21:12**에서 멈췄다.",
+          "rewardClueIds": ["clue_1"]
+        },
+        {
+          "hotspotId": "hs_2",
+          "label": "젖은 영수증",
+          "descriptionMd": "택시 영수증 일부가 젖어 붙어 있다.",
+          "rewardClueIds": ["clue_2"]
+        }
+      ]
+    },
+    {
+      "sceneId": "scene_2",
+      "title": "Office Room",
+      "descriptionMd": "사무실 창문이 비정상적으로 열려 있다.",
+      "hotspots": [
+        {
+          "hotspotId": "hs_3",
+          "label": "창문 잠금쇠",
+          "descriptionMd": "억지로 젖힌 흔적.",
+          "rewardClueIds": ["clue_3"]
+        },
+        {
+          "hotspotId": "hs_4",
+          "label": "재떨이",
+          "descriptionMd": "피해자는 금연 중이었지만 낯선 담배 재가 있다.",
+          "rewardClueIds": ["clue_4"]
+        }
+      ]
+    }
+  ],
+
+  "documents": [
+    {
+      "docId": "doc_1",
+      "title": "Taxi Receipt",
+      "type": "receipt",
+      "bodyMd": "승차 21:03, 하차 21:08. 용의자 주장과 미세한 오차가 있다.",
+      "rewardClueIds": ["clue_5"]
+    },
+    {
+      "docId": "doc_2",
+      "title": "Phone Log",
+      "type": "calllog",
+      "bodyMd": "피해자와 용의자 통화 기록: **21:15**, 42초.",
+      "rewardClueIds": ["clue_6"]
+    }
+  ],
+
+  "clues": [
+    {
+      "clueId": "clue_1",
+      "title": "Broken Watch @21:12",
+      "text": "시계 충격 흔적. 사건 시간을 가리킬 수 있다.",
+      "tags": { "time": "21:12", "location": "Back Alley", "personId": "victim" },
+      "source": { "type": "scene", "id": "hs_1" }
+    },
+    {
+      "clueId": "clue_2",
+      "title": "Wet Receipt Fragment",
+      "text": "택시 번호 일부와 결제 시각 흔적.",
+      "tags": { "time": "21:08", "location": "Back Alley" },
+      "source": { "type": "scene", "id": "hs_2" }
+    },
+    {
+      "clueId": "clue_3",
+      "title": "Forced Latch",
+      "text": "창문 잠금쇠가 외부에서 눌린 자국.",
+      "tags": { "time": "21:25", "location": "Office" },
+      "source": { "type": "scene", "id": "hs_3" }
+    },
+    {
+      "clueId": "clue_4",
+      "title": "Foreign Cigarette Ash",
+      "text": "용의자 브랜드와 동일한 담배 재.",
+      "tags": { "location": "Office", "personId": "s1" },
+      "source": { "type": "scene", "id": "hs_4" }
+    },
+    {
+      "clueId": "clue_5",
+      "title": "Taxi Timing Mismatch",
+      "text": "알리바이와 이동 시간에 모순.",
+      "tags": { "time": "21:08", "personId": "s1" },
+      "source": { "type": "doc", "id": "doc_1" }
+    },
+    {
+      "clueId": "clue_6",
+      "title": "21:15 Call Record",
+      "text": "피해자가 21:15에 살아 있었을 가능성.",
+      "tags": { "time": "21:15", "personId": "s1" },
+      "source": { "type": "doc", "id": "doc_2" }
+    },
+    {
+      "clueId": "clue_7",
+      "title": "Confession on Watch",
+      "text": "용의자가 시계 시간 조작을 실토.",
+      "tags": { "time": "21:12", "personId": "s1" },
+      "source": { "type": "interrogation", "id": "s1_succ_01" }
+    }
+  ],
+
+  "interrogations": [
+    {
+      "characterId": "s1",
+      "startNodeId": "s1_01",
+      "nodes": [
+        {
+          "nodeId": "s1_01",
+          "speakerId": "s1",
+          "text": "난 그 시간에 택시에 있었다.",
+          "choices": [
+            { "choiceId": "c1", "label": "세부 시간 추궁", "nextNodeId": "s1_02" },
+            {
+              "choiceId": "c2",
+              "label": "택시 영수증 제시",
+              "evidenceCheck": {
+                "acceptedClueIds": ["clue_5"],
+                "successNodeId": "s1_succ_01",
+                "failNodeId": "s1_fail_01",
+                "grantClueIds": ["clue_7"]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "s1_02",
+          "speakerId": "s1",
+          "text": "21:10쯤 내렸지. 뭐 어때서?",
+          "choices": [
+            {
+              "choiceId": "c3",
+              "label": "깨진 시계 단서 제시",
+              "evidenceCheck": {
+                "acceptedClueIds": ["clue_1"],
+                "successNodeId": "s1_succ_01",
+                "failNodeId": "s1_fail_01",
+                "grantClueIds": ["clue_7"]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "s1_fail_01",
+          "speakerId": "s1",
+          "text": "헛다리 짚었군.",
+          "choices": [{ "choiceId": "c4", "label": "다시 추궁", "nextNodeId": "s1_01" }]
+        },
+        {
+          "nodeId": "s1_succ_01",
+          "speakerId": "s1",
+          "text": "그래, 시계는 내가 건드렸다.",
+          "choices": [{ "choiceId": "c5", "label": "심문 종료", "nextNodeId": "s1_end" }]
+        },
+        {
+          "nodeId": "s1_end",
+          "speakerId": "s1",
+          "text": "더 할 말 없다.",
+          "choices": []
+        }
+      ]
+    }
+  ],
+
+  "timeline": {
+    "slots": [
+      {
+        "slotId": "t1",
+        "label": "21:08",
+        "allowedClueIds": ["clue_5", "clue_2"],
+        "hint": { "l1": "택시", "l2": "이동 시간", "l3": "영수증" }
+      },
+      {
+        "slotId": "t2",
+        "label": "21:12",
+        "allowedClueIds": ["clue_1", "clue_7"],
+        "hint": { "l1": "시계", "l2": "충격", "l3": "조작" }
+      },
+      {
+        "slotId": "t3",
+        "label": "21:15",
+        "allowedClueIds": ["clue_6"],
+        "hint": { "l1": "통화", "l2": "피해자", "l3": "생존" }
+      },
+      {
+        "slotId": "t4",
+        "label": "21:20",
+        "allowedClueIds": ["clue_4"],
+        "hint": { "l1": "재떨이", "l2": "브랜드", "l3": "용의자" }
+      },
+      {
+        "slotId": "t5",
+        "label": "21:25",
+        "allowedClueIds": ["clue_3"],
+        "hint": { "l1": "창문", "l2": "잠금쇠", "l3": "침입" }
+      }
+    ],
+    "solution": [
+      { "slotId": "t1", "clueId": "clue_5" },
+      { "slotId": "t2", "clueId": "clue_7" },
+      { "slotId": "t3", "clueId": "clue_6" },
+      { "slotId": "t4", "clueId": "clue_4" },
+      { "slotId": "t5", "clueId": "clue_3" }
+    ]
+  },
+
+  "report": {
+    "minEvidenceToSubmit": 3,
+    "questions": [
+      {
+        "qId": "q_killer",
+        "prompt": "범인은 누구인가?",
+        "options": [
+          { "id": "s1", "label": "Lee Doman" },
+          { "id": "w1", "label": "Park Mina" }
+        ],
+        "correctOptionId": "s1",
+        "requiredClueSets": [["clue_5", "clue_7"], ["clue_1", "clue_6", "clue_7"]],
+        "hint": { "l1": "시계 조작", "l2": "알리바이", "l3": "실토" }
+      }
+    ]
+  },
+
+  "explanations": {
+    "summaryMd": "택시 시간 모순과 시계 조작 실토가 결정적이다.",
+    "fullSolutionMd": "용의자 s1은 택시 알리바이를 내세웠지만 시간 모순이 드러났고 심문에서 시계 조작을 인정했다."
+  },
+
+  "hintPolicy": { "maxUses": 3, "penaltyPerUse": 1 }
+}
