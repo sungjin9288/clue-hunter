@@ -1,5 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import type { CaseSchemaV01 } from "../engine/caseTypes";
+import { highlightTimesInMarkdown } from "../components/TimeHighlight";
 
 interface Props {
   caseData: CaseSchemaV01;
@@ -47,7 +48,7 @@ export function DocumentsScreen({
       <article>
         <h3>{selected.title}</h3>
         <p className="muted">유형: {selected.type}</p>
-        <ReactMarkdown>{selected.bodyMd}</ReactMarkdown>
+        <ReactMarkdown>{highlightTimesInMarkdown(selected.bodyMd)}</ReactMarkdown>
 
         <button
           type="button"

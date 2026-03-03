@@ -1,0 +1,1065 @@
+{
+  "schemaVersion": "0.1",
+  "caseId": "case_011",
+  "title": "[Case 011] Burnt Envelope",
+  "synopsis": "소각 직전 봉투 하나가 모든 증언을 뒤집었다. 도착 시각이 늦은 알리바이는 대체로 가짜다.",
+  "meta": {
+    "tone": "hardboiled",
+    "estimatedMinutes": 86,
+    "difficulty": 6
+  },
+  "characters": {
+    "victim": {
+      "id": "victim",
+      "name": "Lim Jaein",
+      "bio": "Incineration Wing 내부 비리 자료를 넘기려던 보호 증언자. 수신인 봉투 원본의 마지막 보관자였다.",
+      "lockedBio": [
+        {
+          "text": "피해자는 사건 직전 수신인 봉투 원본 백업 키를 따로 남겼다.",
+          "unlockClueId": "c_13"
+        }
+      ]
+    },
+    "suspects": [
+      {
+        "id": "s1",
+        "name": "Oh Minseok",
+        "bio": "Incineration Wing 접근권한을 가진 운영 책임자. 기록 절차를 누구보다 잘 안다.",
+        "alibiClaim": "23:10에는 내부 점검 루틴을 수행 중이었다.",
+        "lockedBio": [
+          {
+            "text": "송달 책임 회피 과정에서 손실이 가장 큰 인물이다.",
+            "unlockClueId": "c_11"
+          }
+        ]
+      },
+      {
+        "id": "s2",
+        "name": "Song Hyerin",
+        "bio": "Incineration Wing 보안 로그를 관리하는 관제 담당. 복구 권한을 갖고 있다.",
+        "alibiClaim": "23:33엔 관제 콘솔에서 장애 대응만 했다.",
+        "lockedBio": [
+          {
+            "text": "23:33 로그를 사후 복원한 흔적이 남아 있다.",
+            "unlockClueId": "c_14"
+          }
+        ]
+      },
+      {
+        "id": "s3",
+        "name": "Kim Hyeon",
+        "bio": "Incineration Wing 설비 정비 담당. 자동 큐와 스케줄 주입 권한이 있다.",
+        "alibiClaim": "23:45 자동 처리 구간이라 현장 개입이 없었다.",
+        "lockedBio": [
+          {
+            "text": "소각 대기열 순번 조작에 필요한 기술 작업을 수행할 수 있었다.",
+            "unlockClueId": "c_16"
+          }
+        ]
+      }
+    ],
+    "witnesses": [
+      {
+        "id": "w1",
+        "name": "Ahn Seol",
+        "bio": "Incineration Wing 주변 동선을 본 유일한 목격자. 핵심 구간 진술이 흔들린다.",
+        "lockedBio": [
+          {
+            "text": "23:45 직전, 누군가 수신인 봉투 원본 봉투를 전달하는 장면을 봤다.",
+            "unlockClueId": "c_20"
+          }
+        ]
+      },
+      {
+        "id": "w2",
+        "name": "Do Jinwoo",
+        "bio": "Incineration Wing 야간 접수 기록 담당. 외부 반입/반출 시각을 관리한다."
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "sceneId": "scene_1",
+      "title": "Incineration Wing Perimeter",
+      "descriptionMd": "Incineration Wing 외곽. 야간 조명 아래 동선 흔적이 선명하다.",
+      "hotspots": [
+        {
+          "hotspotId": "hs_1",
+          "label": "봉인 파열 흔적",
+          "descriptionMd": "수신인 봉투 원본 보관 구역 봉인이 안쪽에서 파열됐다. 시각 표기 **22:58**.",
+          "rewardClueIds": [
+            "c_01"
+          ]
+        },
+        {
+          "hotspotId": "hs_2",
+          "label": "이동 궤적 자국",
+          "descriptionMd": "Incineration Wing 내부 이동선이 공식 동선과 어긋난다. 시각 표기 **23:02**.",
+          "rewardClueIds": [
+            "c_02"
+          ]
+        }
+      ]
+    },
+    {
+      "sceneId": "scene_2",
+      "title": "Incineration Wing Records Bay",
+      "descriptionMd": "수신인 봉투 원본 관련 기록이 보관된 구역. 접근 흔적이 비정상적으로 겹친다.",
+      "hotspots": [
+        {
+          "hotspotId": "hs_3",
+          "label": "잠금 키패드 누적 입력",
+          "descriptionMd": "짧은 시간 내 잠금 시도가 반복됐다. 시각 표기 **23:10**.",
+          "rewardClueIds": [
+            "c_03"
+          ]
+        },
+        {
+          "hotspotId": "hs_4",
+          "label": "찢긴 전달 봉투",
+          "descriptionMd": "수신인 봉투 원본 전달 봉투의 수취인 칸이 의도적으로 제거됐다. 시각 표기 **23:33**.",
+          "rewardClueIds": [
+            "c_04"
+          ]
+        }
+      ]
+    },
+    {
+      "sceneId": "scene_3",
+      "title": "Incineration Wing Control Office",
+      "descriptionMd": "소각 대기열 순번 조작에 필요한 콘솔이 모인 공간. 의도적인 누락이 보인다.",
+      "hotspots": [
+        {
+          "hotspotId": "hs_5",
+          "label": "약물/장비 사용 흔적",
+          "descriptionMd": "소각 대기열 순번 조작 직전 사용된 소모품 흔적이 남아 있다. 시각 표기 **23:19**.",
+          "rewardClueIds": [
+            "c_05"
+          ]
+        },
+        {
+          "hotspotId": "hs_6",
+          "label": "이중 서명 장부",
+          "descriptionMd": "동일 항목에 서로 다른 결재 흐름이 겹쳐 있다. 시각 표기 **23:02**.",
+          "rewardClueIds": [
+            "c_06"
+          ]
+        }
+      ]
+    },
+    {
+      "sceneId": "scene_4",
+      "title": "Incineration Wing Mechanic Deck",
+      "descriptionMd": "자동 처리 장비가 밀집한 구역. 송달 책임 회피와 직접 연결된 조작 흔적이 남아 있다.",
+      "hotspots": [
+        {
+          "hotspotId": "hs_7",
+          "label": "긴급 정지 우회 로그",
+          "descriptionMd": "사건 시각 직전 안전장치가 잠시 비활성화됐다. 시각 표기 **23:10**.",
+          "rewardClueIds": [
+            "c_07"
+          ]
+        },
+        {
+          "hotspotId": "hs_8",
+          "label": "프레임 누락 구간",
+          "descriptionMd": "연속 프레임이 비어 있어 개입 시점을 숨긴다. 시각 표기 **23:33**.",
+          "rewardClueIds": [
+            "c_08"
+          ]
+        }
+      ]
+    }
+  ],
+  "documents": [
+    {
+      "docId": "doc_1",
+      "title": "Incineration Wing Entry Audit",
+      "type": "sensor",
+      "bodyMd": "Incineration Wing 출입 센서가 초기 진입 시각을 고정한다. 시각 표기 **23:02**.",
+      "rewardClueIds": [
+        "c_09"
+      ]
+    },
+    {
+      "docId": "doc_2",
+      "title": "Incineration Wing Lock Attempt Log",
+      "type": "audit",
+      "bodyMd": "잠금 시도 로그가 알리바이와 충돌한다. 시각 표기 **23:10**.",
+      "rewardClueIds": [
+        "c_10"
+      ]
+    },
+    {
+      "docId": "doc_3",
+      "title": "Incineration Wing Motive Ledger",
+      "type": "financial",
+      "bodyMd": "송달 책임 회피 관련 금전 흐름이 용의자 이해관계와 맞물린다. 시각 표기 **23:19**.",
+      "rewardClueIds": [
+        "c_11"
+      ]
+    },
+    {
+      "docId": "doc_4",
+      "title": "Incineration Wing Controlled Item Log",
+      "type": "medical",
+      "bodyMd": "소각 대기열 순번 조작 직전 사용된 통제 품목의 승인 기록. 시각 표기 **23:19**.",
+      "rewardClueIds": [
+        "c_12"
+      ]
+    },
+    {
+      "docId": "doc_5",
+      "title": "Incineration Wing Trigger Amendment",
+      "type": "contract",
+      "bodyMd": "수신인 봉투 원본 수정안이 사건 직전에 재배포됐다. 시각 표기 **23:45**.",
+      "rewardClueIds": [
+        "c_13"
+      ]
+    },
+    {
+      "docId": "doc_6",
+      "title": "Incineration Wing Recovery Timeline",
+      "type": "cctv",
+      "bodyMd": "누락 프레임 복구 시각이 사건 흐름과 역행한다. 시각 표기 **23:33**.",
+      "rewardClueIds": [
+        "c_14"
+      ]
+    },
+    {
+      "docId": "doc_7",
+      "title": "Incineration Wing Threat Memo",
+      "type": "memo",
+      "bodyMd": "수신인 봉투 원본을 압박하는 협박 메모가 남아 있다. 시각 표기 **22:50**.",
+      "rewardClueIds": [
+        "c_15"
+      ]
+    },
+    {
+      "docId": "doc_8",
+      "title": "Incineration Wing Auto Queue Trace",
+      "type": "system",
+      "bodyMd": "자동 큐 입력이 시스템 기본 루틴이 아닌 수동 주입으로 확인된다. 시각 표기 **23:45**.",
+      "rewardClueIds": [
+        "c_16"
+      ]
+    }
+  ],
+  "clues": [
+    {
+      "clueId": "c_01",
+      "title": "Burnt Envelope 현장 단서 01 @22:58",
+      "text": "Incineration Wing 현장에서 확보된 물증. 소각 대기열 순번 조작 정황과 이어진다.",
+      "tags": {
+        "time": "22:58",
+        "location": "Incineration Wing Perimeter"
+      },
+      "source": {
+        "type": "scene",
+        "id": "hs_1"
+      }
+    },
+    {
+      "clueId": "c_02",
+      "title": "Burnt Envelope 현장 단서 02 @23:02",
+      "text": "Incineration Wing 현장에서 확보된 물증. 소각 대기열 순번 조작 정황과 이어진다.",
+      "tags": {
+        "time": "23:02",
+        "location": "Incineration Wing Perimeter"
+      },
+      "source": {
+        "type": "scene",
+        "id": "hs_2"
+      }
+    },
+    {
+      "clueId": "c_03",
+      "title": "Burnt Envelope 현장 단서 03 @23:10",
+      "text": "Incineration Wing 현장에서 확보된 물증. 소각 대기열 순번 조작 정황과 이어진다.",
+      "tags": {
+        "time": "23:10",
+        "location": "Incineration Wing Records Bay",
+        "personId": "s1"
+      },
+      "source": {
+        "type": "scene",
+        "id": "hs_3"
+      }
+    },
+    {
+      "clueId": "c_04",
+      "title": "Burnt Envelope 현장 단서 04",
+      "text": "Incineration Wing 현장에서 확보된 물증. 소각 대기열 순번 조작 정황과 이어진다.",
+      "tags": {
+        "location": "Incineration Wing Records Bay"
+      },
+      "source": {
+        "type": "scene",
+        "id": "hs_4"
+      }
+    },
+    {
+      "clueId": "c_05",
+      "title": "Burnt Envelope 현장 단서 05 @23:19",
+      "text": "Incineration Wing 현장에서 확보된 물증. 소각 대기열 순번 조작 정황과 이어진다.",
+      "tags": {
+        "time": "23:19",
+        "location": "Incineration Wing Control Office",
+        "personId": "s1"
+      },
+      "source": {
+        "type": "scene",
+        "id": "hs_5"
+      }
+    },
+    {
+      "clueId": "c_06",
+      "title": "Burnt Envelope 현장 단서 06",
+      "text": "Incineration Wing 현장에서 확보된 물증. 소각 대기열 순번 조작 정황과 이어진다.",
+      "tags": {
+        "location": "Incineration Wing Control Office",
+        "personId": "s1"
+      },
+      "source": {
+        "type": "scene",
+        "id": "hs_6"
+      }
+    },
+    {
+      "clueId": "c_07",
+      "title": "Burnt Envelope 현장 단서 07",
+      "text": "Incineration Wing 현장에서 확보된 물증. 소각 대기열 순번 조작 정황과 이어진다.",
+      "tags": {
+        "location": "Incineration Wing Mechanic Deck",
+        "personId": "s3"
+      },
+      "source": {
+        "type": "scene",
+        "id": "hs_7"
+      }
+    },
+    {
+      "clueId": "c_08",
+      "title": "Burnt Envelope 현장 단서 08 @23:33",
+      "text": "Incineration Wing 현장에서 확보된 물증. 소각 대기열 순번 조작 정황과 이어진다.",
+      "tags": {
+        "time": "23:33",
+        "location": "Incineration Wing Mechanic Deck",
+        "personId": "s2"
+      },
+      "source": {
+        "type": "scene",
+        "id": "hs_8"
+      }
+    },
+    {
+      "clueId": "c_09",
+      "title": "Burnt Envelope 문서 단서 09 @23:02",
+      "text": "수신인 봉투 원본 관련 기록 증거. 진술과 충돌하는 고정 시각을 제공한다.",
+      "tags": {
+        "time": "23:02",
+        "personId": "s1"
+      },
+      "source": {
+        "type": "doc",
+        "id": "doc_1"
+      }
+    },
+    {
+      "clueId": "c_10",
+      "title": "Burnt Envelope 문서 단서 10 @23:10",
+      "text": "수신인 봉투 원본 관련 기록 증거. 진술과 충돌하는 고정 시각을 제공한다.",
+      "tags": {
+        "time": "23:10",
+        "personId": "s1"
+      },
+      "source": {
+        "type": "doc",
+        "id": "doc_2"
+      }
+    },
+    {
+      "clueId": "c_11",
+      "title": "Burnt Envelope 문서 단서 11",
+      "text": "수신인 봉투 원본 관련 기록 증거. 진술과 충돌하는 고정 시각을 제공한다.",
+      "tags": {
+        "personId": "s1"
+      },
+      "source": {
+        "type": "doc",
+        "id": "doc_3"
+      }
+    },
+    {
+      "clueId": "c_12",
+      "title": "Burnt Envelope 문서 단서 12 @23:19",
+      "text": "수신인 봉투 원본 관련 기록 증거. 진술과 충돌하는 고정 시각을 제공한다.",
+      "tags": {
+        "time": "23:19",
+        "personId": "s1"
+      },
+      "source": {
+        "type": "doc",
+        "id": "doc_4"
+      }
+    },
+    {
+      "clueId": "c_13",
+      "title": "Burnt Envelope 문서 단서 13",
+      "text": "수신인 봉투 원본 관련 기록 증거. 진술과 충돌하는 고정 시각을 제공한다.",
+      "tags": {
+        "personId": "s1"
+      },
+      "source": {
+        "type": "doc",
+        "id": "doc_5"
+      }
+    },
+    {
+      "clueId": "c_14",
+      "title": "Burnt Envelope 문서 단서 14 @23:33",
+      "text": "수신인 봉투 원본 관련 기록 증거. 진술과 충돌하는 고정 시각을 제공한다.",
+      "tags": {
+        "time": "23:33",
+        "personId": "s2"
+      },
+      "source": {
+        "type": "doc",
+        "id": "doc_6"
+      }
+    },
+    {
+      "clueId": "c_15",
+      "title": "Burnt Envelope 문서 단서 15 @22:50",
+      "text": "수신인 봉투 원본 관련 기록 증거. 진술과 충돌하는 고정 시각을 제공한다.",
+      "tags": {
+        "time": "22:50",
+        "personId": "s1"
+      },
+      "source": {
+        "type": "doc",
+        "id": "doc_7"
+      }
+    },
+    {
+      "clueId": "c_16",
+      "title": "Burnt Envelope 문서 단서 16 @23:45",
+      "text": "수신인 봉투 원본 관련 기록 증거. 진술과 충돌하는 고정 시각을 제공한다.",
+      "tags": {
+        "time": "23:45",
+        "personId": "s3"
+      },
+      "source": {
+        "type": "doc",
+        "id": "doc_8"
+      }
+    },
+    {
+      "clueId": "c_17",
+      "title": "Burnt Envelope 심문 단서 17 @23:10",
+      "text": "심문 과정에서 확보한 진술 누수. 송달 책임 회피 동기를 구체화한다.",
+      "tags": {
+        "time": "23:10",
+        "personId": "s1"
+      },
+      "source": {
+        "type": "interrogation",
+        "id": "s1_succ_01"
+      }
+    },
+    {
+      "clueId": "c_18",
+      "title": "Burnt Envelope 심문 단서 18 @23:19",
+      "text": "심문 과정에서 확보한 진술 누수. 송달 책임 회피 동기를 구체화한다.",
+      "tags": {
+        "time": "23:19",
+        "personId": "s2"
+      },
+      "source": {
+        "type": "interrogation",
+        "id": "s2_succ_01"
+      }
+    },
+    {
+      "clueId": "c_19",
+      "title": "Burnt Envelope 심문 단서 19 @23:33",
+      "text": "심문 과정에서 확보한 진술 누수. 송달 책임 회피 동기를 구체화한다.",
+      "tags": {
+        "time": "23:33",
+        "personId": "s3"
+      },
+      "source": {
+        "type": "interrogation",
+        "id": "s3_succ_01"
+      }
+    },
+    {
+      "clueId": "c_20",
+      "title": "Burnt Envelope 심문 단서 20 @23:45",
+      "text": "심문 과정에서 확보한 진술 누수. 송달 책임 회피 동기를 구체화한다.",
+      "tags": {
+        "time": "23:45",
+        "personId": "s1"
+      },
+      "source": {
+        "type": "interrogation",
+        "id": "w1_succ_01"
+      }
+    }
+  ],
+  "interrogations": [
+    {
+      "characterId": "s1",
+      "startNodeId": "s1_01",
+      "nodes": [
+        {
+          "nodeId": "s1_01",
+          "speakerId": "s1",
+          "text": "23:10에는 보관실 잠금만 점검했어.",
+          "choices": [
+            {
+              "choiceId": "s1_c1",
+              "label": "잠금 이력 추궁",
+              "nextNodeId": "s1_02"
+            },
+            {
+              "choiceId": "s1_c2",
+              "label": "잠금 감사로그 제시",
+              "evidenceCheck": {
+                "acceptedClueIds": [
+                  "c_10",
+                  "c_03"
+                ],
+                "successNodeId": "s1_succ_01",
+                "failNodeId": "s1_fail_01",
+                "grantClueIds": [
+                  "c_17"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "s1_02",
+          "speakerId": "s1",
+          "text": "진정제 로그는 내 계정이지만 내가 쓴 건 아니야.",
+          "choices": [
+            {
+              "choiceId": "s1_c3",
+              "label": "진정제 기록 제시",
+              "evidenceCheck": {
+                "acceptedClueIds": [
+                  "c_12",
+                  "c_05"
+                ],
+                "successNodeId": "s1_succ_01",
+                "failNodeId": "s1_fail_01",
+                "grantClueIds": [
+                  "c_17"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "s1_fail_01",
+          "speakerId": "s1",
+          "text": "그 정도로는 날 못 묶어.",
+          "choices": [
+            {
+              "choiceId": "s1_c4",
+              "label": "처음으로",
+              "nextNodeId": "s1_01"
+            }
+          ]
+        },
+        {
+          "nodeId": "s1_succ_01",
+          "speakerId": "s1",
+          "text": "...좋아, 봉투 수취인은 내가 지웠다.",
+          "choices": [
+            {
+              "choiceId": "s1_c5",
+              "label": "심문 종료",
+              "nextNodeId": "s1_end"
+            }
+          ]
+        },
+        {
+          "nodeId": "s1_end",
+          "speakerId": "s1",
+          "text": "더 이상 말 안 해.",
+          "choices": []
+        }
+      ]
+    },
+    {
+      "characterId": "s2",
+      "startNodeId": "s2_01",
+      "nodes": [
+        {
+          "nodeId": "s2_01",
+          "speakerId": "s2",
+          "text": "누락 프레임 복구는 업무일 뿐이야.",
+          "choices": [
+            {
+              "choiceId": "s2_c1",
+              "label": "복구 시각 추궁",
+              "nextNodeId": "s2_02"
+            },
+            {
+              "choiceId": "s2_c2",
+              "label": "복구 리포트 제시",
+              "evidenceCheck": {
+                "acceptedClueIds": [
+                  "c_14",
+                  "c_08"
+                ],
+                "successNodeId": "s2_succ_01",
+                "failNodeId": "s2_fail_01",
+                "grantClueIds": [
+                  "c_18"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "s2_02",
+          "speakerId": "s2",
+          "text": "23:19엔 관제실에 있었어.",
+          "choices": [
+            {
+              "choiceId": "s2_c3",
+              "label": "진정제 로그 대조",
+              "evidenceCheck": {
+                "acceptedClueIds": [
+                  "c_12"
+                ],
+                "successNodeId": "s2_succ_01",
+                "failNodeId": "s2_fail_01",
+                "grantClueIds": [
+                  "c_18"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "s2_fail_01",
+          "speakerId": "s2",
+          "text": "그건 내 관할 밖이야.",
+          "choices": [
+            {
+              "choiceId": "s2_c4",
+              "label": "다시 묻기",
+              "nextNodeId": "s2_01"
+            }
+          ]
+        },
+        {
+          "nodeId": "s2_succ_01",
+          "speakerId": "s2",
+          "text": "좋아, 복구 순서를 바꿔서 기록을 덮었다.",
+          "choices": [
+            {
+              "choiceId": "s2_c5",
+              "label": "심문 종료",
+              "nextNodeId": "s2_end"
+            }
+          ]
+        },
+        {
+          "nodeId": "s2_end",
+          "speakerId": "s2",
+          "text": "이제 끝내자.",
+          "choices": []
+        }
+      ]
+    },
+    {
+      "characterId": "s3",
+      "startNodeId": "s3_01",
+      "nodes": [
+        {
+          "nodeId": "s3_01",
+          "speakerId": "s3",
+          "text": "자동기동은 시스템이 알아서 한다고.",
+          "choices": [
+            {
+              "choiceId": "s3_c1",
+              "label": "기동 큐 추궁",
+              "nextNodeId": "s3_02"
+            },
+            {
+              "choiceId": "s3_c2",
+              "label": "자동 큐 문서 제시",
+              "evidenceCheck": {
+                "acceptedClueIds": [
+                  "c_16",
+                  "c_07"
+                ],
+                "successNodeId": "s3_succ_01",
+                "failNodeId": "s3_fail_01",
+                "grantClueIds": [
+                  "c_19"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "s3_02",
+          "speakerId": "s3",
+          "text": "정지 스위치는 내가 건드린 적 없어.",
+          "choices": [
+            {
+              "choiceId": "s3_c3",
+              "label": "정지 우회 흔적 제시",
+              "evidenceCheck": {
+                "acceptedClueIds": [
+                  "c_07"
+                ],
+                "successNodeId": "s3_succ_01",
+                "failNodeId": "s3_fail_01",
+                "grantClueIds": [
+                  "c_19"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "s3_fail_01",
+          "speakerId": "s3",
+          "text": "난 기록대로 일했어.",
+          "choices": [
+            {
+              "choiceId": "s3_c4",
+              "label": "처음으로",
+              "nextNodeId": "s3_01"
+            }
+          ]
+        },
+        {
+          "nodeId": "s3_succ_01",
+          "speakerId": "s3",
+          "text": "그래, 자동기동 큐는 누가 넣어달라고 요청했다.",
+          "choices": [
+            {
+              "choiceId": "s3_c5",
+              "label": "심문 종료",
+              "nextNodeId": "s3_end"
+            }
+          ]
+        },
+        {
+          "nodeId": "s3_end",
+          "speakerId": "s3",
+          "text": "더 묻지 마.",
+          "choices": []
+        }
+      ]
+    },
+    {
+      "characterId": "w1",
+      "startNodeId": "w1_01",
+      "nodes": [
+        {
+          "nodeId": "w1_01",
+          "speakerId": "w1",
+          "text": "난 아무 얼굴도 못 봤어. 그냥 그림자였어.",
+          "choices": [
+            {
+              "choiceId": "w1_c1",
+              "label": "목격 시각 추궁",
+              "nextNodeId": "w1_02"
+            },
+            {
+              "choiceId": "w1_c2",
+              "label": "프레임 누락 제시",
+              "evidenceCheck": {
+                "acceptedClueIds": [
+                  "c_14",
+                  "c_08"
+                ],
+                "successNodeId": "w1_succ_01",
+                "failNodeId": "w1_fail_01",
+                "grantClueIds": [
+                  "c_20"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "w1_02",
+          "speakerId": "w1",
+          "text": "23:45 직전, 누군가 봉투를 밀어 넣는 걸 봤어.",
+          "choices": [
+            {
+              "choiceId": "w1_c3",
+              "label": "자동 큐 시각 대조",
+              "evidenceCheck": {
+                "acceptedClueIds": [
+                  "c_16"
+                ],
+                "successNodeId": "w1_succ_01",
+                "failNodeId": "w1_fail_01",
+                "grantClueIds": [
+                  "c_20"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "w1_fail_01",
+          "speakerId": "w1",
+          "text": "확신할 수 없어.",
+          "choices": [
+            {
+              "choiceId": "w1_c4",
+              "label": "다시 시도",
+              "nextNodeId": "w1_01"
+            }
+          ]
+        },
+        {
+          "nodeId": "w1_succ_01",
+          "speakerId": "w1",
+          "text": "봉투를 건넨 사람, 분명 s1이었어.",
+          "choices": [
+            {
+              "choiceId": "w1_c5",
+              "label": "심문 종료",
+              "nextNodeId": "w1_end"
+            }
+          ]
+        },
+        {
+          "nodeId": "w1_end",
+          "speakerId": "w1",
+          "text": "이게 내가 말할 수 있는 전부야.",
+          "choices": []
+        }
+      ]
+    }
+  ],
+  "timeline": {
+    "slots": [
+      {
+        "slotId": "t1",
+        "label": "23:02",
+        "allowedClueIds": [
+          "c_09",
+          "c_02"
+        ],
+        "hint": {
+          "l1": "수레",
+          "l2": "보호구역",
+          "l3": "동선 시작"
+        }
+      },
+      {
+        "slotId": "t2",
+        "label": "23:10",
+        "allowedClueIds": [
+          "c_10",
+          "c_03",
+          "c_17"
+        ],
+        "hint": {
+          "l1": "보관실",
+          "l2": "잠금",
+          "l3": "삭제된 수취인"
+        }
+      },
+      {
+        "slotId": "t3",
+        "label": "23:19",
+        "allowedClueIds": [
+          "c_12",
+          "c_05",
+          "c_18"
+        ],
+        "hint": {
+          "l1": "진정제",
+          "l2": "승인 계정",
+          "l3": "관제 로그"
+        }
+      },
+      {
+        "slotId": "t4",
+        "label": "23:33",
+        "allowedClueIds": [
+          "c_14",
+          "c_08",
+          "c_19"
+        ],
+        "hint": {
+          "l1": "프레임 누락",
+          "l2": "복구",
+          "l3": "우회 작업"
+        }
+      },
+      {
+        "slotId": "t5",
+        "label": "23:45",
+        "allowedClueIds": [
+          "c_16",
+          "c_20"
+        ],
+        "hint": {
+          "l1": "자동 큐",
+          "l2": "봉투 전달",
+          "l3": "마지막 고정"
+        }
+      }
+    ],
+    "solution": [
+      {
+        "slotId": "t1",
+        "clueId": "c_09"
+      },
+      {
+        "slotId": "t2",
+        "clueId": "c_17"
+      },
+      {
+        "slotId": "t3",
+        "clueId": "c_12"
+      },
+      {
+        "slotId": "t4",
+        "clueId": "c_19"
+      },
+      {
+        "slotId": "t5",
+        "clueId": "c_20"
+      }
+    ]
+  },
+  "report": {
+    "minEvidenceToSubmit": 3,
+    "questions": [
+      {
+        "qId": "q_killer",
+        "prompt": "범인은 누구인가?",
+        "options": [
+          {
+            "id": "s1",
+            "label": "Oh Minseok"
+          },
+          {
+            "id": "s2",
+            "label": "Song Hyerin"
+          },
+          {
+            "id": "s3",
+            "label": "Kim Hyeon"
+          }
+        ],
+        "correctOptionId": "s1",
+        "requiredClueSets": [
+          [
+            "c_17",
+            "c_12",
+            "c_20"
+          ],
+          [
+            "c_10",
+            "c_12",
+            "c_20"
+          ]
+        ],
+        "hint": {
+          "l1": "계정",
+          "l2": "목격",
+          "l3": "삭제된 수취인"
+        }
+      },
+      {
+        "qId": "q_method",
+        "prompt": "범행 수법은 무엇인가?",
+        "options": [
+          {
+            "id": "s1",
+            "label": "s1: 소각 대기열 순번 조작 기반으로 핵심 증거를 조작"
+          },
+          {
+            "id": "s2",
+            "label": "s2: 관제 혼선만 유발한 단독 교란"
+          },
+          {
+            "id": "s3",
+            "label": "s3: 장비 고장 위장 후 현장 이탈"
+          }
+        ],
+        "correctOptionId": "s1",
+        "requiredClueSets": [
+          [
+            "c_03",
+            "c_05",
+            "c_16"
+          ],
+          [
+            "c_03",
+            "c_12",
+            "c_19"
+          ]
+        ],
+        "hint": {
+          "l1": "잠금",
+          "l2": "진정제",
+          "l3": "자동 큐"
+        }
+      },
+      {
+        "qId": "q_motive",
+        "prompt": "주된 동기는 무엇인가?",
+        "options": [
+          {
+            "id": "s1",
+            "label": "s1: 송달 책임 회피"
+          },
+          {
+            "id": "s2",
+            "label": "s2: 평가 하락 및 징계 회피"
+          },
+          {
+            "id": "s3",
+            "label": "s3: 장비 예산 및 외주 계약 확보"
+          }
+        ],
+        "correctOptionId": "s1",
+        "requiredClueSets": [
+          [
+            "c_11",
+            "c_13",
+            "c_15"
+          ],
+          [
+            "c_11",
+            "c_13",
+            "c_17"
+          ]
+        ],
+        "hint": {
+          "l1": "정산",
+          "l2": "계약",
+          "l3": "협박 메모"
+        }
+      }
+    ]
+  },
+  "explanations": {
+    "summaryMd": "Burnt Envelope: 수신인 봉투 원본 관련 거짓 진술과 소각 대기열 순번 조작 정황을 시간축으로 고정한다.",
+    "fullSolutionMd": "23:02 -> 23:10 -> 23:19 -> 23:33 -> 23:45 흐름에서 현장/문서/심문 단서를 교차 대조하면 핵심 용의자의 조작 목적(송달 책임 회피)이 드러난다.",
+    "secretEndingMd": "타버린 봉투에도 주소는 남았다. 당신은 마지막 수신인을 증거로 못박았다."
+  },
+  "hintPolicy": {
+    "maxUses": 3,
+    "penaltyPerUse": 1
+  }
+}

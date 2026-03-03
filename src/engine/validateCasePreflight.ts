@@ -18,32 +18,55 @@ export function validateCasePreflight(c: CaseSchemaV01): PreflightResult {
   const errors: string[] = [];
   const warnings: string[] = [];
 
+  const scenes = c.scenes ?? [];
+  const documents = c.documents ?? [];
+  const clues = c.clues ?? [];
+  const interrogations = c.interrogations ?? [];
+  const timelineSlots = c.timeline?.slots ?? [];
+  const timelineSolution = c.timeline?.solution ?? [];
+  const reportQuestions = c.report?.questions ?? [];
+
   const sceneIds = new Set<string>();
   const hotspotIds = new Set<string>();
   const docIds = new Set<string>();
   const clueIds = new Set<string>();
   const nodeIds = new Set<string>();
   const slotIds = new Set<string>();
+  const characterIds = new Set<string>();
 
-  for (const scene of c.scenes) {
+  pushUniqueError(characterIds, c.characters.victim.id, "characterId", errors);
+  for (const suspect of c.characters.suspects ?? []) {
+    pushUniqueError(characterIds, suspect.id, "characterId", errors);
+  }
+  for (const witness of c.characters.witnesses ?? []) {
+    pushUniqueError(characterIds, witness.id, "characterId", errors);
+  }
+
+  for (const scene of scenes) {
     pushUniqueError(sceneIds, scene.sceneId, "sceneId", errors);
-    for (const hotspot of scene.hotspots) {
+    for (const hotspot of scene.hotspots ?? []) {
       pushUniqueError(hotspotIds, hotspot.hotspotId, "hotspotId", errors);
     }
   }
 
-  for (const doc of c.documents) {
+  for (const doc of documents) {
     pushUniqueError(docIds, doc.docId, "docId", errors);
   }
 
-  for (const clue of c.clues) {
+  for (const clue of clues) {
     pushUniqueError(clueIds, clue.clueId, "clueId", errors);
   }
 
-  for (const interrogation of c.interrogations) {
+  for (const interrogation of interrogations) {
+    if (!characterIds.has(interrogation.characterId)) {
+      errors.push(
+        `[Missing Ref] interrogations(${interrogation.characterId}).characterId is not a known character`
+      );
+    }
+
     const localNodeIds = new Set<string>();
 
-    for (const node of interrogation.nodes) {
+    for (const node of interrogation.nodes ?? []) {
       pushUniqueError(nodeIds, node.nodeId, "nodeId", errors);
       localNodeIds.add(node.nodeId);
     }
@@ -54,8 +77,14 @@ export function validateCasePreflight(c: CaseSchemaV01): PreflightResult {
       );
     }
 
-    for (const node of interrogation.nodes) {
-      for (const choice of node.choices) {
+    for (const node of interrogation.nodes ?? []) {
+      if (!characterIds.has(node.speakerId)) {
+        errors.push(
+          `[Missing Ref] node(${node.nodeId}).speakerId=${node.speakerId} is not a known character`
+        );
+      }
+
+      for (const choice of node.choices ?? []) {
         if (choice.nextNodeId && !localNodeIds.has(choice.nextNodeId)) {
           errors.push(
             `[Missing Ref] node(${node.nodeId}).choice(${choice.choiceId}).nextNodeId=${choice.nextNodeId}`
@@ -76,7 +105,7 @@ export function validateCasePreflight(c: CaseSchemaV01): PreflightResult {
           );
         }
 
-        for (const accepted of choice.evidenceCheck.acceptedClueIds) {
+        for (const accepted of choice.evidenceCheck.acceptedClueIds ?? []) {
           if (!clueIds.has(accepted)) {
             errors.push(
               `[Missing Ref] evidenceCheck.acceptedClueIds contains unknown clueId=${accepted}`
@@ -93,9 +122,9 @@ export function validateCasePreflight(c: CaseSchemaV01): PreflightResult {
     }
   }
 
-  for (const scene of c.scenes) {
-    for (const hotspot of scene.hotspots) {
-      for (const clueId of hotspot.rewardClueIds) {
+  for (const scene of scenes) {
+    for (const hotspot of scene.hotspots ?? []) {
+      for (const clueId of hotspot.rewardClueIds ?? []) {
         if (!clueIds.has(clueId)) {
           errors.push(`[Missing Ref] hotspot(${hotspot.hotspotId}).rewardClueIds=${clueId}`);
         }
@@ -103,15 +132,15 @@ export function validateCasePreflight(c: CaseSchemaV01): PreflightResult {
     }
   }
 
-  for (const doc of c.documents) {
-    for (const clueId of doc.rewardClueIds) {
+  for (const doc of documents) {
+    for (const clueId of doc.rewardClueIds ?? []) {
       if (!clueIds.has(clueId)) {
         errors.push(`[Missing Ref] document(${doc.docId}).rewardClueIds=${clueId}`);
       }
     }
   }
 
-  for (const clue of c.clues) {
+  for (const clue of clues) {
     if (clue.source.type === "scene" && !hotspotIds.has(clue.source.id)) {
       errors.push(`[Missing Ref] clue(${clue.clueId}).source(scene)=${clue.source.id}`);
     }
@@ -125,21 +154,30 @@ export function validateCasePreflight(c: CaseSchemaV01): PreflightResult {
     }
   }
 
-  if (c.timeline.slots.length !== 5) {
-    errors.push(`[Rule] timeline.slots must be 5 for MVP, got ${c.timeline.slots.length}`);
+  if (timelineSlots.length !== 5) {
+    errors.push(`[Rule] timeline.slots must be 5 for MVP, got ${timelineSlots.length}`);
   }
 
-  for (const slot of c.timeline.slots) {
+  for (const slot of timelineSlots) {
     pushUniqueError(slotIds, slot.slotId, "timeline.slotId", errors);
 
-    for (const allowed of slot.allowedClueIds) {
+    for (const allowed of slot.allowedClueIds ?? []) {
       if (!clueIds.has(allowed)) {
         errors.push(`[Missing Ref] timeline.slot(${slot.slotId}).allowedClueIds=${allowed}`);
       }
     }
   }
 
-  for (const row of c.timeline.solution) {
+  if (timelineSolution.length !== timelineSlots.length) {
+    errors.push(
+      `[Rule] timeline.solution length must match timeline.slots length (${timelineSlots.length}), got ${timelineSolution.length}`
+    );
+  }
+
+  const solutionSlotIds = new Set<string>();
+  for (const row of timelineSolution) {
+    pushUniqueError(solutionSlotIds, row.slotId, "timeline.solution.slotId", errors);
+
     if (!slotIds.has(row.slotId)) {
       errors.push(`[Missing Ref] timeline.solution.slotId=${row.slotId}`);
     }
@@ -148,22 +186,49 @@ export function validateCasePreflight(c: CaseSchemaV01): PreflightResult {
       errors.push(`[Missing Ref] timeline.solution.clueId=${row.clueId}`);
     }
 
-    const slot = c.timeline.slots.find((s) => s.slotId === row.slotId);
-    if (slot && !slot.allowedClueIds.includes(row.clueId)) {
+    const slot = timelineSlots.find((s) => s.slotId === row.slotId);
+    if (slot && !(slot.allowedClueIds ?? []).includes(row.clueId)) {
       errors.push(`[Rule] timeline.solution(${row.slotId}) clue ${row.clueId} is not allowed`);
+    }
+
+    const solutionClue = clues.find((clue) => clue.clueId === row.clueId);
+    if (solutionClue && !solutionClue.tags?.time) {
+      warnings.push(
+        `[Warning] timeline.solution clue(${row.clueId}) has no tags.time (slot ${row.slotId})`
+      );
+    }
+  }
+
+  for (const slot of timelineSlots) {
+    if (!solutionSlotIds.has(slot.slotId)) {
+      errors.push(`[Missing Ref] timeline.solution does not cover slotId=${slot.slotId}`);
     }
   }
 
   const questionIds = new Set<string>();
-  for (const q of c.report.questions) {
+  for (const q of reportQuestions) {
     pushUniqueError(questionIds, q.qId, "report.qId", errors);
 
-    const optionIds = new Set(q.options.map((o) => o.id));
+    const optionIds = new Set((q.options ?? []).map((o) => o.id));
     if (!optionIds.has(q.correctOptionId)) {
       errors.push(`[Missing Ref] report.question(${q.qId}).correctOptionId=${q.correctOptionId}`);
     }
 
-    for (const set of q.requiredClueSets) {
+    if (!characterIds.has(q.correctOptionId)) {
+      errors.push(
+        `[Missing Ref] report.question(${q.qId}).correctOptionId=${q.correctOptionId} is not a known character`
+      );
+    }
+
+    for (const option of q.options ?? []) {
+      if (!characterIds.has(option.id)) {
+        errors.push(
+          `[Missing Ref] report.question(${q.qId}).option.id=${option.id} is not a known character`
+        );
+      }
+    }
+
+    for (const set of q.requiredClueSets ?? []) {
       for (const clueId of set) {
         if (!clueIds.has(clueId)) {
           errors.push(`[Missing Ref] report.question(${q.qId}).requiredClueSets contains ${clueId}`);
@@ -172,7 +237,7 @@ export function validateCasePreflight(c: CaseSchemaV01): PreflightResult {
     }
   }
 
-  if (c.report.questions.length === 0) {
+  if (reportQuestions.length === 0) {
     warnings.push("[Warning] report.questions is empty");
   }
 

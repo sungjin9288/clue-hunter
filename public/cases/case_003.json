@@ -1,0 +1,1065 @@
+{
+  "schemaVersion": "0.1",
+  "caseId": "case_003",
+  "title": "[Case 003] Ashen Witness",
+  "synopsis": "화장로 구역에서 봉인된 증언자가 사망했다. 재는 식었지만 타임스탬프는 아직 뜨겁다.",
+  "meta": {
+    "tone": "hardboiled",
+    "estimatedMinutes": 60,
+    "difficulty": 4
+  },
+  "characters": {
+    "victim": {
+      "id": "victim",
+      "name": "Han Serin",
+      "bio": "비밀 증언 프로그램에 들어가 있던 내부고발자.",
+      "lockedBio": [
+        {
+          "text": "피해자는 사건 당일 새벽에 신원보호 해제를 요청했다.",
+          "unlockClueId": "c_13"
+        }
+      ]
+    },
+    "suspects": [
+      {
+        "id": "s1",
+        "name": "Jun Kyumin",
+        "bio": "의전 담당. 화장시설 내부 동선을 가장 잘 안다.",
+        "alibiClaim": "22:14에는 기록보관실 잠금 점검 중이었다.",
+        "lockedBio": [
+          {
+            "text": "피해자 보호계약 해지 시 수수료 정산 문제로 손실이 컸다.",
+            "unlockClueId": "c_11"
+          }
+        ]
+      },
+      {
+        "id": "s2",
+        "name": "Park Yujin",
+        "bio": "보안관제 요원. CCTV 권한을 보유.",
+        "alibiClaim": "관제실에서 로그만 확인했다.",
+        "lockedBio": [
+          {
+            "text": "22:37 구간 CCTV 프레임 누락을 사후 복구했다.",
+            "unlockClueId": "c_14"
+          }
+        ]
+      },
+      {
+        "id": "s3",
+        "name": "Jang Hojun",
+        "bio": "시설 정비팀. 화장로 기동 기록에 접근 가능.",
+        "alibiClaim": "22:49 자동기동은 시스템이 처리했다.",
+        "lockedBio": [
+          {
+            "text": "자동기동 메일 발신 서버에 수동 큐 삽입 흔적이 있다.",
+            "unlockClueId": "c_16"
+          }
+        ]
+      }
+    ],
+    "witnesses": [
+      {
+        "id": "w1",
+        "name": "Seo Rina",
+        "bio": "유일한 현장 목격자. 진술이 계속 바뀐다.",
+        "lockedBio": [
+          {
+            "text": "w1은 22:49 직전 누군가 봉투를 건네는 장면을 봤다.",
+            "unlockClueId": "c_20"
+          }
+        ]
+      },
+      {
+        "id": "w2",
+        "name": "Choi Namseok",
+        "bio": "야간 접수 직원. 외부 차량 출입을 관리했다."
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "sceneId": "scene_1",
+      "title": "Crematorium Yard",
+      "descriptionMd": "비가 섞인 재 냄새가 묵직하게 깔려 있다.",
+      "hotspots": [
+        {
+          "hotspotId": "hs_1",
+          "label": "봉인 테이프 파열",
+          "descriptionMd": "봉인 테이프가 안쪽에서 찢겼다. 기록 시각은 **22:02**.",
+          "rewardClueIds": [
+            "c_01"
+          ]
+        },
+        {
+          "hotspotId": "hs_2",
+          "label": "출입 휠마크",
+          "descriptionMd": "수레 바퀴 자국이 보호구역 문으로 이어진다. 바닥 표시 **22:06**.",
+          "rewardClueIds": [
+            "c_02"
+          ]
+        }
+      ]
+    },
+    {
+      "sceneId": "scene_2",
+      "title": "Archive Vault",
+      "descriptionMd": "열람 금지 문서 보관실. 키패드에 오래된 지문이 겹쳐 있다.",
+      "hotspots": [
+        {
+          "hotspotId": "hs_3",
+          "label": "키패드 지문층",
+          "descriptionMd": "22:14 직전에 입력이 3회 반복됐다.",
+          "rewardClueIds": [
+            "c_03"
+          ]
+        },
+        {
+          "hotspotId": "hs_4",
+          "label": "찢긴 봉투",
+          "descriptionMd": "증언자 보호계약 사본 봉투. 수취인 칸이 비어 있다.",
+          "rewardClueIds": [
+            "c_04"
+          ]
+        }
+      ]
+    },
+    {
+      "sceneId": "scene_3",
+      "title": "Chapel Office",
+      "descriptionMd": "서류 캐비닛이 열린 채 멈춰 있다.",
+      "hotspots": [
+        {
+          "hotspotId": "hs_5",
+          "label": "진정제 바이알",
+          "descriptionMd": "라벨의 개봉 시각이 **22:23**으로 찍혔다.",
+          "rewardClueIds": [
+            "c_05"
+          ]
+        },
+        {
+          "hotspotId": "hs_6",
+          "label": "이중 서명 장부",
+          "descriptionMd": "같은 항목에 서로 다른 필체의 서명이 있다.",
+          "rewardClueIds": [
+            "c_06"
+          ]
+        }
+      ]
+    },
+    {
+      "sceneId": "scene_4",
+      "title": "Furnace Deck",
+      "descriptionMd": "고열 장비가 식어가며 금속음만 남겼다.",
+      "hotspots": [
+        {
+          "hotspotId": "hs_7",
+          "label": "긴급 정지 스위치",
+          "descriptionMd": "정지 스위치가 잠시 비활성화된 로그 흔적.",
+          "rewardClueIds": [
+            "c_07"
+          ]
+        },
+        {
+          "hotspotId": "hs_8",
+          "label": "프레임 누락 구간",
+          "descriptionMd": "Furnace cam 타임코드가 **22:37**에서 연속 누락.",
+          "rewardClueIds": [
+            "c_08"
+          ]
+        }
+      ]
+    }
+  ],
+  "documents": [
+    {
+      "docId": "doc_1",
+      "title": "Gate Wheel Sensor",
+      "type": "sensor",
+      "bodyMd": "보호구역 수레 이동 감지: 22:06.",
+      "rewardClueIds": [
+        "c_09"
+      ]
+    },
+    {
+      "docId": "doc_2",
+      "title": "Vault Lock Audit",
+      "type": "audit",
+      "bodyMd": "보관실 잠금 해제 시도 22:14, 사용자 세션 s1.",
+      "rewardClueIds": [
+        "c_10"
+      ]
+    },
+    {
+      "docId": "doc_3",
+      "title": "Compensation Ledger",
+      "type": "financial",
+      "bodyMd": "증언 프로그램 종료 시 의전 담당 정산 손실 발생.",
+      "rewardClueIds": [
+        "c_11"
+      ]
+    },
+    {
+      "docId": "doc_4",
+      "title": "Sedative Dispense Log",
+      "type": "medical",
+      "bodyMd": "진정제 출고 시각 22:23, 승인 아이디 s1.",
+      "rewardClueIds": [
+        "c_12"
+      ]
+    },
+    {
+      "docId": "doc_5",
+      "title": "Witness Protection Amendment",
+      "type": "contract",
+      "bodyMd": "피해자 보호계약 조건 변경안. 수수료 분배 조항에 갈등 기록.",
+      "rewardClueIds": [
+        "c_13"
+      ]
+    },
+    {
+      "docId": "doc_6",
+      "title": "CCTV Recovery Report",
+      "type": "cctv",
+      "bodyMd": "누락 프레임 복구 시각 22:37, 복구 실행자 s2.",
+      "rewardClueIds": [
+        "c_14"
+      ]
+    },
+    {
+      "docId": "doc_7",
+      "title": "Threat Memo",
+      "type": "memo",
+      "bodyMd": "21:54 작성: \"서류가 공개되면 모두 끝장난다.\"",
+      "rewardClueIds": [
+        "c_15"
+      ]
+    },
+    {
+      "docId": "doc_8",
+      "title": "Furnace Auto Queue",
+      "type": "system",
+      "bodyMd": "화장로 자동기동 큐 입력 22:49. 입력 세션 출처가 내부 수동 단말이다.",
+      "rewardClueIds": [
+        "c_16"
+      ]
+    }
+  ],
+  "clues": [
+    {
+      "clueId": "c_01",
+      "title": "Seal Rupture @22:02",
+      "text": "봉인이 외부가 아니라 내부에서 파열됐다.",
+      "tags": {
+        "time": "22:02",
+        "location": "Crematorium Yard"
+      },
+      "source": {
+        "type": "scene",
+        "id": "hs_1"
+      }
+    },
+    {
+      "clueId": "c_02",
+      "title": "Wheel Mark @22:06",
+      "text": "물리적 이동 흔적이 보호구역 내부로 향한다.",
+      "tags": {
+        "time": "22:06",
+        "location": "Crematorium Yard"
+      },
+      "source": {
+        "type": "scene",
+        "id": "hs_2"
+      }
+    },
+    {
+      "clueId": "c_03",
+      "title": "Vault Keypad Burst @22:14",
+      "text": "잠금 해제 시도가 짧은 간격으로 반복됐다.",
+      "tags": {
+        "time": "22:14",
+        "location": "Archive Vault",
+        "personId": "s1"
+      },
+      "source": {
+        "type": "scene",
+        "id": "hs_3"
+      }
+    },
+    {
+      "clueId": "c_04",
+      "title": "Empty Recipient Envelope",
+      "text": "계약 봉투의 수취인이 지워졌다.",
+      "tags": {
+        "location": "Archive Vault"
+      },
+      "source": {
+        "type": "scene",
+        "id": "hs_4"
+      }
+    },
+    {
+      "clueId": "c_05",
+      "title": "Sedative Vial @22:23",
+      "text": "직접 투여가 가능했던 진정제 사용 흔적.",
+      "tags": {
+        "time": "22:23",
+        "location": "Chapel Office",
+        "personId": "s1"
+      },
+      "source": {
+        "type": "scene",
+        "id": "hs_5"
+      }
+    },
+    {
+      "clueId": "c_06",
+      "title": "Dual Signature Ledger",
+      "text": "동일 항목의 대리서명이 발견됐다.",
+      "tags": {
+        "location": "Chapel Office",
+        "personId": "s1"
+      },
+      "source": {
+        "type": "scene",
+        "id": "hs_6"
+      }
+    },
+    {
+      "clueId": "c_07",
+      "title": "Emergency Stop Bypass",
+      "text": "장비 정지 기능이 일시 비활성화됐다.",
+      "tags": {
+        "location": "Furnace Deck",
+        "personId": "s3"
+      },
+      "source": {
+        "type": "scene",
+        "id": "hs_7"
+      }
+    },
+    {
+      "clueId": "c_08",
+      "title": "Frame Gap @22:37",
+      "text": "누락 구간에 누군가 장비를 조작했다.",
+      "tags": {
+        "time": "22:37",
+        "location": "Furnace Deck",
+        "personId": "s2"
+      },
+      "source": {
+        "type": "scene",
+        "id": "hs_8"
+      }
+    },
+    {
+      "clueId": "c_09",
+      "title": "Wheel Sensor Log @22:06",
+      "text": "공식 센서 기록으로 시작 동선을 고정한다.",
+      "tags": {
+        "time": "22:06",
+        "personId": "s1"
+      },
+      "source": {
+        "type": "doc",
+        "id": "doc_1"
+      }
+    },
+    {
+      "clueId": "c_10",
+      "title": "Vault Audit @22:14",
+      "text": "잠금 해제 세션 사용자 식별.",
+      "tags": {
+        "time": "22:14",
+        "personId": "s1"
+      },
+      "source": {
+        "type": "doc",
+        "id": "doc_2"
+      }
+    },
+    {
+      "clueId": "c_11",
+      "title": "Compensation Conflict",
+      "text": "피해자 생존 시 s1의 정산 손실이 확정된다.",
+      "tags": {
+        "personId": "s1"
+      },
+      "source": {
+        "type": "doc",
+        "id": "doc_3"
+      }
+    },
+    {
+      "clueId": "c_12",
+      "title": "Sedative Log @22:23",
+      "text": "진정제 승인 계정이 s1로 남아 있다.",
+      "tags": {
+        "time": "22:23",
+        "personId": "s1"
+      },
+      "source": {
+        "type": "doc",
+        "id": "doc_4"
+      }
+    },
+    {
+      "clueId": "c_13",
+      "title": "Protection Amendment",
+      "text": "보호계약 변경으로 이해관계가 직접 충돌한다.",
+      "tags": {
+        "personId": "s1"
+      },
+      "source": {
+        "type": "doc",
+        "id": "doc_5"
+      }
+    },
+    {
+      "clueId": "c_14",
+      "title": "Recovery Execution @22:37",
+      "text": "CCTV 복구 행위 자체가 은폐 정황이 된다.",
+      "tags": {
+        "time": "22:37",
+        "personId": "s2"
+      },
+      "source": {
+        "type": "doc",
+        "id": "doc_6"
+      }
+    },
+    {
+      "clueId": "c_15",
+      "title": "Threat Memo @21:54",
+      "text": "사건 직전 압박 문구. 동기 정황 보강.",
+      "tags": {
+        "time": "21:54",
+        "personId": "s1"
+      },
+      "source": {
+        "type": "doc",
+        "id": "doc_7"
+      }
+    },
+    {
+      "clueId": "c_16",
+      "title": "Auto Queue @22:49",
+      "text": "화장로 자동기동이 수동 큐 입력이었다.",
+      "tags": {
+        "time": "22:49",
+        "personId": "s3"
+      },
+      "source": {
+        "type": "doc",
+        "id": "doc_8"
+      }
+    },
+    {
+      "clueId": "c_17",
+      "title": "s1 Slip: Contract Envelope",
+      "text": "s1은 삭제된 수취인 칸 내용을 알고 있었다.",
+      "tags": {
+        "time": "22:14",
+        "personId": "s1"
+      },
+      "source": {
+        "type": "interrogation",
+        "id": "s1_succ_01"
+      }
+    },
+    {
+      "clueId": "c_18",
+      "title": "s2 Admission: Frame Patch",
+      "text": "s2는 누락 프레임을 사후 보정했다고 시인했다.",
+      "tags": {
+        "time": "22:23",
+        "personId": "s2"
+      },
+      "source": {
+        "type": "interrogation",
+        "id": "s2_succ_01"
+      }
+    },
+    {
+      "clueId": "c_19",
+      "title": "s3 Confirmation: Stop Bypass",
+      "text": "정지 스위치 우회가 사전에 준비된 작업이었다.",
+      "tags": {
+        "time": "22:37",
+        "personId": "s3"
+      },
+      "source": {
+        "type": "interrogation",
+        "id": "s3_succ_01"
+      }
+    },
+    {
+      "clueId": "c_20",
+      "title": "w1 Final Testimony @22:49",
+      "text": "w1은 22:49 직전 s1이 봉투를 건네는 장면을 확인했다.",
+      "tags": {
+        "time": "22:49",
+        "personId": "s1"
+      },
+      "source": {
+        "type": "interrogation",
+        "id": "w1_succ_01"
+      }
+    }
+  ],
+  "interrogations": [
+    {
+      "characterId": "s1",
+      "startNodeId": "s1_01",
+      "nodes": [
+        {
+          "nodeId": "s1_01",
+          "speakerId": "s1",
+          "text": "22:14에는 보관실 잠금만 점검했어.",
+          "choices": [
+            {
+              "choiceId": "s1_c1",
+              "label": "잠금 이력 추궁",
+              "nextNodeId": "s1_02"
+            },
+            {
+              "choiceId": "s1_c2",
+              "label": "잠금 감사로그 제시",
+              "evidenceCheck": {
+                "acceptedClueIds": [
+                  "c_10",
+                  "c_03"
+                ],
+                "successNodeId": "s1_succ_01",
+                "failNodeId": "s1_fail_01",
+                "grantClueIds": [
+                  "c_17"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "s1_02",
+          "speakerId": "s1",
+          "text": "진정제 로그는 내 계정이지만 내가 쓴 건 아니야.",
+          "choices": [
+            {
+              "choiceId": "s1_c3",
+              "label": "진정제 기록 제시",
+              "evidenceCheck": {
+                "acceptedClueIds": [
+                  "c_12",
+                  "c_05"
+                ],
+                "successNodeId": "s1_succ_01",
+                "failNodeId": "s1_fail_01",
+                "grantClueIds": [
+                  "c_17"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "s1_fail_01",
+          "speakerId": "s1",
+          "text": "그 정도로는 날 못 묶어.",
+          "choices": [
+            {
+              "choiceId": "s1_c4",
+              "label": "처음으로",
+              "nextNodeId": "s1_01"
+            }
+          ]
+        },
+        {
+          "nodeId": "s1_succ_01",
+          "speakerId": "s1",
+          "text": "...좋아, 봉투 수취인은 내가 지웠다.",
+          "choices": [
+            {
+              "choiceId": "s1_c5",
+              "label": "심문 종료",
+              "nextNodeId": "s1_end"
+            }
+          ]
+        },
+        {
+          "nodeId": "s1_end",
+          "speakerId": "s1",
+          "text": "더 이상 말 안 해.",
+          "choices": []
+        }
+      ]
+    },
+    {
+      "characterId": "s2",
+      "startNodeId": "s2_01",
+      "nodes": [
+        {
+          "nodeId": "s2_01",
+          "speakerId": "s2",
+          "text": "누락 프레임 복구는 업무일 뿐이야.",
+          "choices": [
+            {
+              "choiceId": "s2_c1",
+              "label": "복구 시각 추궁",
+              "nextNodeId": "s2_02"
+            },
+            {
+              "choiceId": "s2_c2",
+              "label": "복구 리포트 제시",
+              "evidenceCheck": {
+                "acceptedClueIds": [
+                  "c_14",
+                  "c_08"
+                ],
+                "successNodeId": "s2_succ_01",
+                "failNodeId": "s2_fail_01",
+                "grantClueIds": [
+                  "c_18"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "s2_02",
+          "speakerId": "s2",
+          "text": "22:23엔 관제실에 있었어.",
+          "choices": [
+            {
+              "choiceId": "s2_c3",
+              "label": "진정제 로그 대조",
+              "evidenceCheck": {
+                "acceptedClueIds": [
+                  "c_12"
+                ],
+                "successNodeId": "s2_succ_01",
+                "failNodeId": "s2_fail_01",
+                "grantClueIds": [
+                  "c_18"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "s2_fail_01",
+          "speakerId": "s2",
+          "text": "그건 내 관할 밖이야.",
+          "choices": [
+            {
+              "choiceId": "s2_c4",
+              "label": "다시 묻기",
+              "nextNodeId": "s2_01"
+            }
+          ]
+        },
+        {
+          "nodeId": "s2_succ_01",
+          "speakerId": "s2",
+          "text": "좋아, 복구 순서를 바꿔서 기록을 덮었다.",
+          "choices": [
+            {
+              "choiceId": "s2_c5",
+              "label": "심문 종료",
+              "nextNodeId": "s2_end"
+            }
+          ]
+        },
+        {
+          "nodeId": "s2_end",
+          "speakerId": "s2",
+          "text": "이제 끝내자.",
+          "choices": []
+        }
+      ]
+    },
+    {
+      "characterId": "s3",
+      "startNodeId": "s3_01",
+      "nodes": [
+        {
+          "nodeId": "s3_01",
+          "speakerId": "s3",
+          "text": "자동기동은 시스템이 알아서 한다고.",
+          "choices": [
+            {
+              "choiceId": "s3_c1",
+              "label": "기동 큐 추궁",
+              "nextNodeId": "s3_02"
+            },
+            {
+              "choiceId": "s3_c2",
+              "label": "자동 큐 문서 제시",
+              "evidenceCheck": {
+                "acceptedClueIds": [
+                  "c_16",
+                  "c_07"
+                ],
+                "successNodeId": "s3_succ_01",
+                "failNodeId": "s3_fail_01",
+                "grantClueIds": [
+                  "c_19"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "s3_02",
+          "speakerId": "s3",
+          "text": "정지 스위치는 내가 건드린 적 없어.",
+          "choices": [
+            {
+              "choiceId": "s3_c3",
+              "label": "정지 우회 흔적 제시",
+              "evidenceCheck": {
+                "acceptedClueIds": [
+                  "c_07"
+                ],
+                "successNodeId": "s3_succ_01",
+                "failNodeId": "s3_fail_01",
+                "grantClueIds": [
+                  "c_19"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "s3_fail_01",
+          "speakerId": "s3",
+          "text": "난 기록대로 일했어.",
+          "choices": [
+            {
+              "choiceId": "s3_c4",
+              "label": "처음으로",
+              "nextNodeId": "s3_01"
+            }
+          ]
+        },
+        {
+          "nodeId": "s3_succ_01",
+          "speakerId": "s3",
+          "text": "그래, 자동기동 큐는 누가 넣어달라고 요청했다.",
+          "choices": [
+            {
+              "choiceId": "s3_c5",
+              "label": "심문 종료",
+              "nextNodeId": "s3_end"
+            }
+          ]
+        },
+        {
+          "nodeId": "s3_end",
+          "speakerId": "s3",
+          "text": "더 묻지 마.",
+          "choices": []
+        }
+      ]
+    },
+    {
+      "characterId": "w1",
+      "startNodeId": "w1_01",
+      "nodes": [
+        {
+          "nodeId": "w1_01",
+          "speakerId": "w1",
+          "text": "난 아무 얼굴도 못 봤어. 그냥 그림자였어.",
+          "choices": [
+            {
+              "choiceId": "w1_c1",
+              "label": "목격 시각 추궁",
+              "nextNodeId": "w1_02"
+            },
+            {
+              "choiceId": "w1_c2",
+              "label": "프레임 누락 제시",
+              "evidenceCheck": {
+                "acceptedClueIds": [
+                  "c_14",
+                  "c_08"
+                ],
+                "successNodeId": "w1_succ_01",
+                "failNodeId": "w1_fail_01",
+                "grantClueIds": [
+                  "c_20"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "w1_02",
+          "speakerId": "w1",
+          "text": "22:49 직전, 누군가 봉투를 밀어 넣는 걸 봤어.",
+          "choices": [
+            {
+              "choiceId": "w1_c3",
+              "label": "자동 큐 시각 대조",
+              "evidenceCheck": {
+                "acceptedClueIds": [
+                  "c_16"
+                ],
+                "successNodeId": "w1_succ_01",
+                "failNodeId": "w1_fail_01",
+                "grantClueIds": [
+                  "c_20"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodeId": "w1_fail_01",
+          "speakerId": "w1",
+          "text": "확신할 수 없어.",
+          "choices": [
+            {
+              "choiceId": "w1_c4",
+              "label": "다시 시도",
+              "nextNodeId": "w1_01"
+            }
+          ]
+        },
+        {
+          "nodeId": "w1_succ_01",
+          "speakerId": "w1",
+          "text": "봉투를 건넨 사람, 분명 s1이었어.",
+          "choices": [
+            {
+              "choiceId": "w1_c5",
+              "label": "심문 종료",
+              "nextNodeId": "w1_end"
+            }
+          ]
+        },
+        {
+          "nodeId": "w1_end",
+          "speakerId": "w1",
+          "text": "이게 내가 말할 수 있는 전부야.",
+          "choices": []
+        }
+      ]
+    }
+  ],
+  "timeline": {
+    "slots": [
+      {
+        "slotId": "t1",
+        "label": "22:06",
+        "allowedClueIds": [
+          "c_09",
+          "c_02"
+        ],
+        "hint": {
+          "l1": "수레",
+          "l2": "보호구역",
+          "l3": "동선 시작"
+        }
+      },
+      {
+        "slotId": "t2",
+        "label": "22:14",
+        "allowedClueIds": [
+          "c_10",
+          "c_03",
+          "c_17"
+        ],
+        "hint": {
+          "l1": "보관실",
+          "l2": "잠금",
+          "l3": "삭제된 수취인"
+        }
+      },
+      {
+        "slotId": "t3",
+        "label": "22:23",
+        "allowedClueIds": [
+          "c_12",
+          "c_05",
+          "c_18"
+        ],
+        "hint": {
+          "l1": "진정제",
+          "l2": "승인 계정",
+          "l3": "관제 로그"
+        }
+      },
+      {
+        "slotId": "t4",
+        "label": "22:37",
+        "allowedClueIds": [
+          "c_14",
+          "c_08",
+          "c_19"
+        ],
+        "hint": {
+          "l1": "프레임 누락",
+          "l2": "복구",
+          "l3": "우회 작업"
+        }
+      },
+      {
+        "slotId": "t5",
+        "label": "22:49",
+        "allowedClueIds": [
+          "c_16",
+          "c_20"
+        ],
+        "hint": {
+          "l1": "자동 큐",
+          "l2": "봉투 전달",
+          "l3": "마지막 고정"
+        }
+      }
+    ],
+    "solution": [
+      {
+        "slotId": "t1",
+        "clueId": "c_09"
+      },
+      {
+        "slotId": "t2",
+        "clueId": "c_17"
+      },
+      {
+        "slotId": "t3",
+        "clueId": "c_12"
+      },
+      {
+        "slotId": "t4",
+        "clueId": "c_19"
+      },
+      {
+        "slotId": "t5",
+        "clueId": "c_20"
+      }
+    ]
+  },
+  "report": {
+    "minEvidenceToSubmit": 3,
+    "questions": [
+      {
+        "qId": "q_killer",
+        "prompt": "범인은 누구인가?",
+        "options": [
+          {
+            "id": "s1",
+            "label": "Jun Kyumin"
+          },
+          {
+            "id": "s2",
+            "label": "Park Yujin"
+          },
+          {
+            "id": "s3",
+            "label": "Jang Hojun"
+          }
+        ],
+        "correctOptionId": "s1",
+        "requiredClueSets": [
+          [
+            "c_17",
+            "c_12",
+            "c_20"
+          ],
+          [
+            "c_10",
+            "c_12",
+            "c_20"
+          ]
+        ],
+        "hint": {
+          "l1": "계정",
+          "l2": "목격",
+          "l3": "삭제된 수취인"
+        }
+      },
+      {
+        "qId": "q_method",
+        "prompt": "범행 수법은 무엇인가?",
+        "options": [
+          {
+            "id": "s1",
+            "label": "s1: 서류 유인 후 진정제 투여, 장비 자동기동 은폐"
+          },
+          {
+            "id": "s2",
+            "label": "s2: CCTV 조작 단독 실행"
+          },
+          {
+            "id": "s3",
+            "label": "s3: 화장로 사고 위장"
+          }
+        ],
+        "correctOptionId": "s1",
+        "requiredClueSets": [
+          [
+            "c_03",
+            "c_05",
+            "c_16"
+          ],
+          [
+            "c_03",
+            "c_12",
+            "c_19"
+          ]
+        ],
+        "hint": {
+          "l1": "잠금",
+          "l2": "진정제",
+          "l3": "자동 큐"
+        }
+      },
+      {
+        "qId": "q_motive",
+        "prompt": "주된 동기는 무엇인가?",
+        "options": [
+          {
+            "id": "s1",
+            "label": "s1: 보호계약 정산 손실 회피"
+          },
+          {
+            "id": "s2",
+            "label": "s2: 관제 평가 하락 은폐"
+          },
+          {
+            "id": "s3",
+            "label": "s3: 장비 교체 예산 확보"
+          }
+        ],
+        "correctOptionId": "s1",
+        "requiredClueSets": [
+          [
+            "c_11",
+            "c_13",
+            "c_15"
+          ],
+          [
+            "c_11",
+            "c_13",
+            "c_17"
+          ]
+        ],
+        "hint": {
+          "l1": "정산",
+          "l2": "계약",
+          "l3": "협박 메모"
+        }
+      }
+    ]
+  },
+  "explanations": {
+    "summaryMd": "s1은 보관실/진정제 권한을 이용해 피해자를 통제했고, 자동기동 큐와 CCTV 누락을 이용해 흔적을 분산시켰다.",
+    "fullSolutionMd": "22:06 동선 시작 이후 22:14 보관실 잠금 해제, 22:23 진정제 사용, 22:37 은폐 작업, 22:49 자동기동 큐와 목격자 증언으로 사건 흐름이 완성된다.",
+    "secretEndingMd": "재는 식었지만 진실은 남았다. 다음 라운드에서는 더 깊은 연쇄 사건이 열릴 것이다."
+  },
+  "hintPolicy": {
+    "maxUses": 3,
+    "penaltyPerUse": 1
+  }
+}

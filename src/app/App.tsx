@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "../styles/mobile.css";
+import { GameProvider, useGame } from "./GameContext";
 import type { TabId } from "./state";
-import { loadCaseById } from "../engine/CaseLoader";
-import { createInitialSave, SaveService, type CaseSaveV01 } from "../engine/SaveService";
-import type { CaseSchemaV01 } from "../engine/caseTypes";
-import { TimelineEngine } from "../engine/TimelineEngine";
-import type { GradeResult } from "../engine/ReportEngine";
+import { useSettings } from "./useSettings";
+import { useAchievement } from "./useAchievement";
+import { BUILD_VERSION } from "./version";
 
+import { CaseSelector } from "../components/CaseSelector";
 import { OverviewScreen } from "../screens/OverviewScreen";
 import { SceneScreen } from "../screens/SceneScreen";
 import { DocumentsScreen } from "../screens/DocumentsScreen";
@@ -14,233 +14,395 @@ import { InterrogationScreen } from "../screens/InterrogationScreen";
 import { BoardReportScreen } from "../screens/BoardReportScreen";
 import { InventoryPanel } from "../components/InventoryPanel";
 import { ClueDetailModal } from "../components/ClueDetailModal";
+import { ColdOpenOverlay } from "../components/ColdOpenOverlay";
+import { AchievementOverlay } from "../components/AchievementOverlay";
 
-const CASE_OPTIONS = ["case_000_sandbox", "case_001"];
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────────────────────────────────────
 
-function dedupe(ids: string[]): string[] {
-  return [...new Set(ids)];
+const TABS: { id: TabId; label: string }[] = [
+  { id: "overview", label: "사건개요" },
+  { id: "scene", label: "현장" },
+  { id: "docs", label: "문서" },
+  { id: "interrogation", label: "심문" },
+  { id: "board-report", label: "보드&보고서" }
+];
+
+const INTRO_SEEN_PREFIX = "noir_mvp_intro_seen_";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pure helpers (no React dependency)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function getNextActionGuide(params: {
+  cluesCount: number;
+  interrogationSuccessCount: number;
+  timelineFilledCount: number;
+  timelineTotal: number;
+  reportEvidenceCount: number;
+  reportEvidenceMin: number;
+  reportSubmitted: boolean;
+}): string {
+  if (params.cluesCount < 3)
+    return "다음 행동: 현장/문서 탭에서 시간 관련 단서를 3개 이상 모아 흐름을 잡으세요.";
+  if (params.interrogationSuccessCount < 1)
+    return "다음 행동: 심문 탭에서 확보한 단서를 제시해 진술 모순을 한 번 이상 끌어내세요.";
+  if (params.timelineFilledCount < params.timelineTotal)
+    return "다음 행동: 보드 탭에서 빈 타임라인 슬롯을 먼저 모두 채워보세요.";
+  if (params.reportEvidenceCount < params.reportEvidenceMin)
+    return `다음 행동: 보고서 근거 단서를 최소 ${params.reportEvidenceMin}장 첨부하세요.`;
+  if (!params.reportSubmitted)
+    return "다음 행동: 보고서를 제출해 현재 추론의 판정을 확인하세요.";
+  return "다음 행동: 사건을 재검토해 더 높은 정확도로 재도전할 수 있습니다.";
 }
 
-export default function App() {
-  const [selectedCaseId, setSelectedCaseId] = useState<string>(CASE_OPTIONS[0]);
-  const [caseData, setCaseData] = useState<CaseSchemaV01 | null>(null);
-  const [saveData, setSaveData] = useState<CaseSaveV01 | null>(null);
+function formatDuration(seconds: number): string {
+  if (seconds <= 0) return "0m";
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (h <= 0) return `${m}m`;
+  return `${h}h ${m}m`;
+}
 
-  const [activeTab, setActiveTab] = useState<TabId>("overview");
-  const [selectedSceneId, setSelectedSceneId] = useState<string | null>(null);
-  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
-  const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
-  const [selectedClueId, setSelectedClueId] = useState<string | null>(null);
+async function exportLog(
+  buildVersion: string,
+  caseId: string,
+  saveData: unknown
+): Promise<void> {
+  const payload = JSON.stringify(
+    { buildVersion, exportedAt: new Date().toISOString(), caseId, saveData },
+    null,
+    2
+  );
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error("Clipboard API unavailable");
+    await navigator.clipboard.writeText(payload);
+    alert("세션 로그가 클립보드에 복사되었습니다.\n공유 안내: 테스트 피드백 채널(카톡/디스코드/이슈)에 붙여넣어 전달해주세요.");
+  } catch {
+    window.prompt("클립보드 복사가 실패했습니다. 아래 내용을 수동 복사하세요.", payload);
+    alert("공유 안내: 복사한 로그를 테스트 피드백 채널에 붙여넣어 전달해주세요.");
+  }
+}
 
-  const [loadErrors, setLoadErrors] = useState<string[]>([]);
-  const [loadWarnings, setLoadWarnings] = useState<string[]>([]);
-  const [gradeResult, setGradeResult] = useState<GradeResult | null>(null);
+// ─────────────────────────────────────────────────────────────────────────────
+// Sub-components
+// ─────────────────────────────────────────────────────────────────────────────
 
+function BrandTitle() {
+  return (
+    <div>
+      <h1>Noir MVP</h1>
+      <span style={{ fontSize: "0.7rem", color: "var(--muted)" }}>{BUILD_VERSION}</span>
+    </div>
+  );
+}
+
+interface AppHeaderProps {
+  onToggleSettings: () => void;
+}
+
+/** Shared topbar rendered in every app state (loading / error / main). */
+function AppHeader({ onToggleSettings }: AppHeaderProps) {
+  return (
+    <header className="topbar">
+      <BrandTitle />
+      <div className="topbar-actions">
+        <CaseSelector />
+        <button type="button" onClick={onToggleSettings}>설정</button>
+      </div>
+    </header>
+  );
+}
+
+interface SettingsPanelProps {
+  fontSizeMode: "normal" | "large";
+  onFontChange: (mode: "normal" | "large") => void;
+  sfxOn: boolean;
+  onSfxChange: (on: boolean) => void;
+  onExportLog: () => void;
+  onResetProgress: () => void;
+}
+
+function SettingsPanel({
+  fontSizeMode,
+  onFontChange,
+  sfxOn,
+  onSfxChange,
+  onExportLog,
+  onResetProgress
+}: SettingsPanelProps) {
+  return (
+    <section className="panel settings-panel">
+      <label>
+        글자 크기
+        <select
+          value={fontSizeMode}
+          onChange={(e) => onFontChange(e.target.value as "normal" | "large")}
+        >
+          <option value="normal">기본</option>
+          <option value="large">확대</option>
+        </select>
+      </label>
+      <label className="inline-check">
+        <input type="checkbox" checked={sfxOn} onChange={(e) => onSfxChange(e.target.checked)} />
+        효과음 On/Off
+      </label>
+      <hr style={{ border: "none", borderTop: "1px solid var(--line)", margin: "4px 0" }} />
+      <button type="button" onClick={onExportLog} style={{ textAlign: "center" }}>
+        세션 로그 내보내기 (클립보드 복사)
+      </button>
+      <button
+        type="button"
+        className="danger-outline"
+        onClick={() => {
+          if (window.confirm("현재 선택된 케이스 진행도를 초기화할까요?")) onResetProgress();
+        }}
+      >
+        Reset Progress
+      </button>
+    </section>
+  );
+}
+
+interface HUDProps {
+  cluesCount: number;
+  cluesTotal: number;
+  interrogationSuccessCount: number;
+  timelineFilledCount: number;
+  timelineTotal: number;
+  evidenceCount: number;
+  evidenceMin: number;
+}
+
+function HUD({
+  cluesCount,
+  cluesTotal,
+  interrogationSuccessCount,
+  timelineFilledCount,
+  timelineTotal,
+  evidenceCount,
+  evidenceMin
+}: HUDProps) {
+  return (
+    <section className="hud-grid">
+      <div className="hud-item">
+        <small>단서</small>
+        <strong>{cluesCount}/{cluesTotal}</strong>
+      </div>
+      <div className="hud-item">
+        <small>심문 성공</small>
+        <strong>{interrogationSuccessCount}</strong>
+      </div>
+      <div className="hud-item">
+        <small>타임라인</small>
+        <strong>{timelineFilledCount}/{timelineTotal}</strong>
+      </div>
+      <div className="hud-item">
+        <small>보고서 근거</small>
+        <strong>{evidenceCount}/{evidenceMin}</strong>
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AppShell
+// ─────────────────────────────────────────────────────────────────────────────
+
+function AppShell() {
+  const {
+    caseData,
+    saveData,
+    clueMap,
+    loadErrors,
+    loadWarnings,
+    gradeResult,
+    clearAchievements,
+    campaignProgress,
+    activeTab,
+    setActiveTab,
+    selectedSceneId,
+    selectedDocId,
+    selectedCharacterId,
+    selectedClueId,
+    setSelectedClueId,
+    addClues,
+    markDocRead,
+    setSelectedSceneId,
+    setSelectedDocId,
+    setSelectedCharacterId,
+    setInterrogationNode,
+    placeTimeline,
+    clearTimeline,
+    setReportAnswer,
+    toggleEvidence,
+    useHint,
+    submitReport,
+    consumeClearAchievements,
+    registerInterrogationSuccess,
+    resetSave
+  } = useGame();
+
+  const { fontSizeMode, setFontSizeMode, sfxOn, setSfxOn } = useSettings();
+  const { achievement, showAchievement } = useAchievement(sfxOn);
+
+  const [showSettings, setShowSettings] = useState(false);
+  const [coldOpenVisible, setColdOpenVisible] = useState(false);
+  const [coldOpenIndex, setColdOpenIndex] = useState(0);
+
+  const prevCaseIdRef = useRef<string | null>(null);
+  const prevClueCountRef = useRef(0);
+
+  // ── Cold Open ───────────────────────────────────────────────────────────
   useEffect(() => {
-    let mounted = true;
+    if (!caseData || !saveData) return;
+    prevCaseIdRef.current = caseData.caseId;
+    prevClueCountRef.current = saveData.obtainedClueIds.length;
 
-    const run = async () => {
-      setLoadErrors([]);
-      setLoadWarnings([]);
-      setCaseData(null);
-      setSaveData(null);
-      setGradeResult(null);
+    const key = `${INTRO_SEEN_PREFIX}${caseData.caseId}`;
+    setColdOpenVisible(localStorage.getItem(key) !== "1");
+    setColdOpenIndex(0);
+  }, [caseData?.caseId, saveData?.caseId]);
 
-      const loaded = await loadCaseById(selectedCaseId);
-      if (!mounted) return;
+  const closeColdOpen = useCallback(() => {
+    if (!caseData) return;
+    localStorage.setItem(`${INTRO_SEEN_PREFIX}${caseData.caseId}`, "1");
+    setColdOpenVisible(false);
+  }, [caseData]);
 
-      if (!loaded.ok) {
-        setLoadErrors(loaded.errors);
-        return;
-      }
+  // ── Evidence-acquired achievement ───────────────────────────────────────
+  useEffect(() => {
+    if (!caseData || !saveData) return;
+    if (prevCaseIdRef.current !== caseData.caseId) return;
+    const next = saveData.obtainedClueIds.length;
+    if (next > prevClueCountRef.current) showAchievement("EVIDENCE ACQUIRED", "good");
+    prevClueCountRef.current = next;
+  }, [caseData?.caseId, saveData?.obtainedClueIds.length]);
 
-      const c = loaded.data;
-      const fallback = createInitialSave(c);
-      const existing = SaveService.load(c.caseId);
+  // ── Report graded achievement ───────────────────────────────────────────
+  useEffect(() => {
+    if (!gradeResult) return;
+    const ok = gradeResult.canSubmit && gradeResult.passed === gradeResult.total;
+    showAchievement(ok ? "APPROVED" : "REJECTED", ok ? "good" : "bad");
+  }, [gradeResult]);
 
-      setCaseData(c);
-      setSaveData(existing ?? fallback);
-      setSelectedSceneId(c.scenes[0]?.sceneId ?? null);
-      setSelectedDocId(c.documents[0]?.docId ?? null);
-      setSelectedCharacterId(c.interrogations[0]?.characterId ?? null);
-      setLoadWarnings(loaded.warnings);
-    };
+  // ── Clear/challenge achievements (queued after APPROVED) ───────────────
+  useEffect(() => {
+    if (clearAchievements.length === 0) return;
 
-    void run();
+    const timers: number[] = [];
+    clearAchievements.forEach((label, idx) => {
+      const timer = window.setTimeout(() => {
+        showAchievement(label, "good");
+      }, 1700 * (idx + 1));
+      timers.push(timer);
+    });
+
+    const clearTimer = window.setTimeout(() => {
+      consumeClearAchievements();
+    }, 1700 * (clearAchievements.length + 1));
+    timers.push(clearTimer);
 
     return () => {
-      mounted = false;
+      for (const timer of timers) window.clearTimeout(timer);
     };
-  }, [selectedCaseId]);
+  }, [clearAchievements, showAchievement, consumeClearAchievements]);
 
-  const clueMap = useMemo(
-    () => new Map(caseData?.clues.map((c) => [c.clueId, c]) ?? []),
-    [caseData]
-  );
+  const coldOpenSlides = useMemo(() => {
+    if (!caseData) return [];
+    return [
+      { title: caseData.title, body: "비가 멎은 도시에 남은 건 거짓말과 타임스탬프뿐이다." },
+      { title: "Cold Open", body: caseData.synopsis },
+      { title: "Objective", body: "현장-문서-심문으로 단서를 모아 타임라인을 고정하고 보고서를 제출하라." }
+    ];
+  }, [caseData]);
 
-  const patchSave = (updater: (prev: CaseSaveV01) => CaseSaveV01) => {
-    if (!saveData) return;
-    const next = updater(saveData);
-    setSaveData(next);
-    SaveService.save(next);
-  };
+  // ── Shared UI props ─────────────────────────────────────────────────────
+  const rootClass = `app-root${fontSizeMode === "large" ? " font-large" : ""}`;
+  const toggleSettings = useCallback(() => setShowSettings((v) => !v), []);
 
-  const addClues = (clueIds: string[]) => {
-    patchSave((prev) => ({
-      ...prev,
-      obtainedClueIds: dedupe([...prev.obtainedClueIds, ...clueIds])
-    }));
-  };
-
-  const markDocRead = (docId: string) => {
-    patchSave((prev) => ({ ...prev, readDocIds: dedupe([...prev.readDocIds, docId]) }));
-  };
-
-  const setInterrogationNode = (characterId: string, nodeId: string) => {
-    patchSave((prev) => ({
-      ...prev,
-      interrogationNodeProgress: {
-        ...prev.interrogationNodeProgress,
-        [characterId]: nodeId
-      }
-    }));
-  };
-
-  const placeTimeline = (slotId: string, clueId: string) => {
-    if (!caseData) return;
-    if (!TimelineEngine.canPlace(caseData, slotId, clueId)) return;
-
-    patchSave((prev) => ({
-      ...prev,
-      timelinePlacement: { ...prev.timelinePlacement, [slotId]: clueId }
-    }));
-  };
-
-  const clearTimeline = (slotId: string) => {
-    patchSave((prev) => ({
-      ...prev,
-      timelinePlacement: { ...prev.timelinePlacement, [slotId]: null }
-    }));
-  };
-
-  const setReportAnswer = (qId: string, optionId: string) => {
-    patchSave((prev) => ({
-      ...prev,
-      reportAnswers: {
-        ...prev.reportAnswers,
-        [qId]: optionId
-      }
-    }));
-  };
-
-  const toggleEvidence = (clueId: string) => {
-    patchSave((prev) => {
-      const has = prev.reportEvidenceClueIds.includes(clueId);
-      return {
-        ...prev,
-        reportEvidenceClueIds: has
-          ? prev.reportEvidenceClueIds.filter((id) => id !== clueId)
-          : [...prev.reportEvidenceClueIds, clueId]
-      };
-    });
-  };
-
-  const submitReport = (result: GradeResult) => {
-    setGradeResult(result);
-    if (!result.canSubmit) return;
-
-    patchSave((prev) => ({ ...prev, reportSubmitted: true }));
-  };
-
+  // ── Early-out: error state ──────────────────────────────────────────────
   if (loadErrors.length > 0) {
     return (
-      <main className="app-root">
-        <header className="topbar">
-          <h1>Noir MVP</h1>
-          <select value={selectedCaseId} onChange={(e) => setSelectedCaseId(e.target.value)}>
-            {CASE_OPTIONS.map((id) => (
-              <option key={id} value={id}>
-                {id}
-              </option>
-            ))}
-          </select>
-        </header>
-
+      <main className={rootClass}>
+        <AppHeader onToggleSettings={toggleSettings} />
         <section className="panel error-panel">
           <h2>케이스 로드/검증 오류</h2>
-          {loadErrors.map((err, i) => (
-            <p key={`${err}-${i}`}>{err}</p>
-          ))}
+          {loadErrors.map((err, i) => <p key={`${err}-${i}`}>{err}</p>)}
         </section>
       </main>
     );
   }
 
+  // ── Early-out: loading state ────────────────────────────────────────────
   if (!caseData || !saveData) {
     return (
-      <main className="app-root">
-        <header className="topbar">
-          <h1>Noir MVP</h1>
-          <select value={selectedCaseId} onChange={(e) => setSelectedCaseId(e.target.value)}>
-            {CASE_OPTIONS.map((id) => (
-              <option key={id} value={id}>
-                {id}
-              </option>
-            ))}
-          </select>
-        </header>
-        <section className="panel">
-          <p>로딩 중...</p>
-        </section>
+      <main className={rootClass}>
+        <AppHeader onToggleSettings={toggleSettings} />
+        <section className="panel"><p>로딩 중...</p></section>
       </main>
     );
   }
 
-  const characterId = selectedCharacterId ?? caseData.interrogations[0]?.characterId;
-  const currentNodeId = characterId
-    ? saveData.interrogationNodeProgress[characterId] ??
-      caseData.interrogations.find((i) => i.characterId === characterId)?.startNodeId ??
-      ""
-    : "";
+  // ── Derived values ──────────────────────────────────────────────────────
+  const timelineFilledCount = Object.values(saveData.timelinePlacement).filter(Boolean).length;
+  const timelineTotal = caseData.timeline.slots.length;
 
+  const nextGuide = getNextActionGuide({
+    cluesCount: saveData.obtainedClueIds.length,
+    interrogationSuccessCount: saveData.interrogationSuccessCount,
+    timelineFilledCount,
+    timelineTotal,
+    reportEvidenceCount: saveData.reportEvidenceClueIds.length,
+    reportEvidenceMin: caseData.report.minEvidenceToSubmit,
+    reportSubmitted: saveData.reportSubmitted
+  });
+
+  // ── Main render ─────────────────────────────────────────────────────────
   return (
-    <main className="app-root">
-      <header className="topbar">
-        <h1>Noir MVP</h1>
-        <div className="toolbar-row">
-          <select value={selectedCaseId} onChange={(e) => setSelectedCaseId(e.target.value)}>
-            {CASE_OPTIONS.map((id) => (
-              <option key={id} value={id}>
-                {id}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={() => {
-              SaveService.clear(caseData.caseId);
-              const fresh = createInitialSave(caseData);
-              setSaveData(fresh);
-              setGradeResult(null);
-            }}
-          >
-            저장 초기화
-          </button>
-        </div>
-      </header>
+    <main className={rootClass}>
+      <AppHeader onToggleSettings={toggleSettings} />
 
-      {loadWarnings.length > 0 ? (
+      {showSettings && (
+        <SettingsPanel
+          fontSizeMode={fontSizeMode}
+          onFontChange={setFontSizeMode}
+          sfxOn={sfxOn}
+          onSfxChange={setSfxOn}
+          onExportLog={() => exportLog(BUILD_VERSION, caseData.caseId, saveData)}
+          onResetProgress={resetSave}
+        />
+      )}
+
+      <section className="guide-strip">{nextGuide}</section>
+
+      <HUD
+        cluesCount={saveData.obtainedClueIds.length}
+        cluesTotal={clueMap.size}
+        interrogationSuccessCount={saveData.interrogationSuccessCount}
+        timelineFilledCount={timelineFilledCount}
+        timelineTotal={timelineTotal}
+        evidenceCount={saveData.reportEvidenceClueIds.length}
+        evidenceMin={caseData.report.minEvidenceToSubmit}
+      />
+
+      {loadWarnings.length > 0 && (
         <section className="panel warning-panel">
-          {loadWarnings.map((warn, i) => (
-            <p key={`${warn}-${i}`}>{warn}</p>
-          ))}
+          {loadWarnings.map((warn, i) => <p key={`${warn}-${i}`}>{warn}</p>)}
         </section>
-      ) : null}
+      )}
 
       <section className="content">
-        {activeTab === "overview" ? <OverviewScreen caseData={caseData} saveData={saveData} /> : null}
+        {activeTab === "overview" && (
+          <OverviewScreen
+            caseData={caseData}
+            saveData={saveData}
+            campaignProgress={campaignProgress}
+          />
+        )}
 
-        {activeTab === "scene" && selectedSceneId ? (
+        {activeTab === "scene" && selectedSceneId && (
           <SceneScreen
             caseData={caseData}
             selectedSceneId={selectedSceneId}
@@ -248,9 +410,9 @@ export default function App() {
             onSelectScene={setSelectedSceneId}
             onClaimHotspot={(_, clueIds) => addClues(clueIds)}
           />
-        ) : null}
+        )}
 
-        {activeTab === "docs" && selectedDocId ? (
+        {activeTab === "docs" && selectedDocId && (
           <DocumentsScreen
             caseData={caseData}
             selectedDocId={selectedDocId}
@@ -260,40 +422,24 @@ export default function App() {
             onReadDoc={markDocRead}
             onClaimDocClues={(_, clueIds) => addClues(clueIds)}
           />
-        ) : null}
+        )}
 
-        {activeTab === "interrogation" && characterId ? (
-          <>
-            <section className="panel">
-              <label>
-                심문 대상
-                <select
-                  value={characterId}
-                  onChange={(e) => {
-                    setSelectedCharacterId(e.target.value);
-                    SaveService.save(saveData);
-                  }}
-                >
-                  {caseData.interrogations.map((i) => (
-                    <option key={i.characterId} value={i.characterId}>
-                      {i.characterId}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </section>
-            <InterrogationScreen
-              caseData={caseData}
-              characterId={characterId}
-              currentNodeId={currentNodeId}
-              obtainedClueIds={saveData.obtainedClueIds}
-              onMoveNode={setInterrogationNode}
-              onGrantClues={addClues}
-            />
-          </>
-        ) : null}
+        {activeTab === "interrogation" && (
+          <InterrogationScreen
+            caseData={caseData}
+            saveData={saveData}
+            selectedCharacterId={selectedCharacterId}
+            onSelectCharacter={setSelectedCharacterId}
+            onMoveNode={setInterrogationNode}
+            onGrantClues={addClues}
+            onEvidenceSuccess={() => {
+              registerInterrogationSuccess();
+              showAchievement("LIE DETECTED", "good");
+            }}
+          />
+        )}
 
-        {activeTab === "board-report" ? (
+        {activeTab === "board-report" && (
           <BoardReportScreen
             caseData={caseData}
             saveData={saveData}
@@ -301,10 +447,14 @@ export default function App() {
             onClear={clearTimeline}
             onSetReportAnswer={setReportAnswer}
             onToggleEvidence={toggleEvidence}
+            onUseHint={() => {
+              useHint();
+              showAchievement("HINT USED", "bad");
+            }}
             onSubmit={submitReport}
             gradeResult={gradeResult}
           />
-        ) : null}
+        )}
       </section>
 
       <InventoryPanel
@@ -316,35 +466,54 @@ export default function App() {
       />
 
       <nav className="bottom-tabs">
-        {[
-          ["overview", "사건개요"],
-          ["scene", "현장"],
-          ["docs", "문서"],
-          ["interrogation", "심문"],
-          ["board-report", "보드&보고서"]
-        ].map(([id, label]) => (
+        {TABS.map(({ id, label }) => (
           <button
             key={id}
             type="button"
             className={activeTab === id ? "active" : ""}
-            onClick={() => {
-              setActiveTab(id as TabId);
-              SaveService.save(saveData);
-            }}
+            onClick={() => setActiveTab(id)}
           >
             {label}
           </button>
         ))}
       </nav>
 
-      <ClueDetailModal caseData={caseData} clueId={selectedClueId} onClose={() => setSelectedClueId(null)} />
+      <ClueDetailModal
+        caseData={caseData}
+        clueId={selectedClueId}
+        onClose={() => setSelectedClueId(null)}
+      />
+
+      {achievement && (
+        <AchievementOverlay label={achievement.label} tone={achievement.tone} />
+      )}
+
+      {coldOpenVisible && coldOpenSlides.length > 0 && (
+        <ColdOpenOverlay
+          slides={coldOpenSlides}
+          index={coldOpenIndex}
+          onNext={() => setColdOpenIndex((i) => Math.min(i + 1, coldOpenSlides.length - 1))}
+          onSkip={closeColdOpen}
+        />
+      )}
 
       <footer className="footer-note">
         <small>
-          진행률: 단서 {saveData.obtainedClueIds.length}/{clueMap.size} | 힌트 사용 {saveData.hintUses}/
-          {caseData.hintPolicy.maxUses}
+          {nextGuide} | 누적 플레이 {formatDuration(campaignProgress.totalPlaySeconds)}
         </small>
       </footer>
     </main>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Root
+// ─────────────────────────────────────────────────────────────────────────────
+
+export default function App() {
+  return (
+    <GameProvider>
+      <AppShell />
+    </GameProvider>
   );
 }

@@ -11,9 +11,9 @@ export interface CaseSchemaV01 {
     difficulty: number;
   };
   characters: {
-    victim: { id: "victim"; name: string; bio: string };
-    suspects: { id: string; name: string; bio: string; alibiClaim: string }[];
-    witnesses: { id: string; name: string; bio: string }[];
+    victim: { id: "victim"; name: string; bio: string; lockedBio?: { text: string; unlockClueId: string }[] };
+    suspects: { id: string; name: string; bio: string; alibiClaim: string; lockedBio?: { text: string; unlockClueId: string }[] }[];
+    witnesses: { id: string; name: string; bio: string; lockedBio?: { text: string; unlockClueId: string }[] }[];
   };
   scenes: {
     sceneId: string;
@@ -52,6 +52,7 @@ export interface CaseSchemaV01 {
         label: string;
         nextNodeId?: string;
         evidenceCheck?: {
+          timeLimitSec?: number;
           acceptedClueIds: string[];
           successNodeId: string;
           failNodeId: string;
@@ -74,7 +75,7 @@ export interface CaseSchemaV01 {
     questions: {
       qId: string;
       prompt: string;
-      options: { id: string; label: string }[];
+      options: { id: string; label: string; feedbackMd?: string }[];
       correctOptionId: string;
       requiredClueSets: string[][];
       hint: { l1: string; l2: string; l3: string };
@@ -83,6 +84,7 @@ export interface CaseSchemaV01 {
   explanations: {
     summaryMd: string;
     fullSolutionMd: string;
+    secretEndingMd?: string;
   };
   hintPolicy: {
     maxUses: number;
