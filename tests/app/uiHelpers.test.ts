@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { buildExportPayload, formatDuration, getNextActionGuide } from "../../src/app/uiHelpers";
+import {
+  buildExportPayload,
+  formatDuration,
+  getEstimatedRemainingMinutes,
+  getInvestigationProgressPercent,
+  getNextActionGuide
+} from "../../src/app/uiHelpers";
 
 describe("getNextActionGuide", () => {
   const base = {
@@ -70,5 +76,52 @@ describe("buildExportPayload", () => {
     expect(parsed.exportedAt).toBe("2026-03-04T00:00:00.000Z");
     expect(parsed.saveData).toEqual({ clues: ["c1"] });
     expect(payload).toContain("\n  \"buildVersion\": \"v1.2.3\"");
+  });
+});
+
+describe("getInvestigationProgressPercent", () => {
+  it("returns 100 when report is submitted", () => {
+    expect(
+      getInvestigationProgressPercent({
+        cluesCount: 0,
+        cluesTotal: 10,
+        interrogationSuccessCount: 0,
+        timelineFilledCount: 0,
+        timelineTotal: 5,
+        reportEvidenceCount: 0,
+        reportEvidenceMin: 3,
+        reportAnsweredCount: 0,
+        reportTotal: 3,
+        reportSubmitted: true
+      })
+    ).toBe(100);
+  });
+
+  it("aggregates progress across clue/interrogation/timeline/evidence/answers", () => {
+    expect(
+      getInvestigationProgressPercent({
+        cluesCount: 10,
+        cluesTotal: 20,
+        interrogationSuccessCount: 1,
+        timelineFilledCount: 2,
+        timelineTotal: 4,
+        reportEvidenceCount: 1,
+        reportEvidenceMin: 2,
+        reportAnsweredCount: 1,
+        reportTotal: 2,
+        reportSubmitted: false
+      })
+    ).toBe(60);
+  });
+});
+
+describe("getEstimatedRemainingMinutes", () => {
+  it("returns 0 for non-positive estimates", () => {
+    expect(getEstimatedRemainingMinutes(0, 10)).toBe(0);
+  });
+
+  it("calculates remaining minutes from progress", () => {
+    expect(getEstimatedRemainingMinutes(60, 25)).toBe(45);
+    expect(getEstimatedRemainingMinutes(60, 100)).toBe(0);
   });
 });

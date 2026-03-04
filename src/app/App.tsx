@@ -6,7 +6,13 @@ import { useSettings } from "./useSettings";
 import { useAchievement } from "./useAchievement";
 import { BUILD_VERSION } from "./version";
 import { playBeep } from "./audio";
-import { buildExportPayload, formatDuration, getNextActionGuide } from "./uiHelpers";
+import {
+  buildExportPayload,
+  formatDuration,
+  getEstimatedRemainingMinutes,
+  getInvestigationProgressPercent,
+  getNextActionGuide
+} from "./uiHelpers";
 
 import { CaseSelector } from "../components/CaseSelector";
 import { OverviewScreen } from "../screens/OverviewScreen";
@@ -65,24 +71,42 @@ function AppHeader({ onToggleSettings }: AppHeaderProps) {
 }
 
 interface SettingsPanelProps {
+  uiPreset: "standard" | "long-play";
+  onPresetChange: (preset: "standard" | "long-play") => void;
   fontSizeMode: "normal" | "large";
   onFontChange: (mode: "normal" | "large") => void;
   sfxOn: boolean;
   onSfxChange: (on: boolean) => void;
+  restReminderMinutes: 0 | 30 | 45 | 60;
+  onRestReminderChange: (minutes: 0 | 30 | 45 | 60) => void;
   onExportLog: () => void;
   onRequestResetProgress: () => void;
 }
 
 function SettingsPanel({
+  uiPreset,
+  onPresetChange,
   fontSizeMode,
   onFontChange,
   sfxOn,
   onSfxChange,
+  restReminderMinutes,
+  onRestReminderChange,
   onExportLog,
   onRequestResetProgress
 }: SettingsPanelProps) {
   return (
     <section className="panel settings-panel">
+      <label>
+        플레이 프리셋
+        <select
+          value={uiPreset}
+          onChange={(e) => onPresetChange(e.target.value as "standard" | "long-play")}
+        >
+          <option value="standard">표준</option>
+          <option value="long-play">장시간 수사</option>
+        </select>
+      </label>
       <label>
         글자 크기
         <select
@@ -97,6 +121,21 @@ function SettingsPanel({
         <input type="checkbox" checked={sfxOn} onChange={(e) => onSfxChange(e.target.checked)} />
         효과음 On/Off
       </label>
+      <label>
+        휴식 알림
+        <select
+          value={restReminderMinutes}
+          onChange={(e) => onRestReminderChange(Number(e.target.value) as 0 | 30 | 45 | 60)}
+        >
+          <option value={0}>꺼짐</option>
+          <option value={30}>30분</option>
+          <option value={45}>45분</option>
+          <option value={60}>60분</option>
+        </select>
+      </label>
+      <small className="muted">
+        장시간 수사 프리셋: 글자 확대, 효과음 최소화, 시각 자극 완화.
+      </small>
       <hr style={{ border: "none", borderTop: "1px solid var(--line)", margin: "4px 0" }} />
       <button type="button" onClick={onExportLog} style={{ textAlign: "center" }}>
         세션 로그 내보내기 (클립보드 복사)
@@ -341,7 +380,16 @@ function AppShell() {
     resetSave
   } = useGame();
 
-  const { fontSizeMode, setFontSizeMode, sfxOn, setSfxOn } = useSettings();
+  const {
+    fontSizeMode,
+    setFontSizeMode,
+    sfxOn,
+    setSfxOn,
+    uiPreset,
+    setUiPreset,
+    restReminderMinutes,
+    setRestReminderMinutes
+  } = useSettings();
   const { achievement, showAchievement } = useAchievement(sfxOn);
 
   const [showSettings, setShowSettings] = useState(false);
@@ -350,9 +398,13 @@ function AppShell() {
   const [tutorialVisible, setTutorialVisible] = useState(false);
   const [resetConfirmVisible, setResetConfirmVisible] = useState(false);
   const [exportNotice, setExportNotice] = useState<{ title: string; message: string; payload?: string } | null>(null);
+  const [sessionElapsedSec, setSessionElapsedSec] = useState(0);
+  const [restReminderVisible, setRestReminderVisible] = useState(false);
 
   const prevCaseIdRef = useRef<string | null>(null);
   const prevClueCountRef = useRef(0);
+  const sessionStartedAtRef = useRef(Date.now());
+  const nextRestReminderAtRef = useRef<number | null>(null);
 
   // ── Cold Open ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -379,6 +431,51 @@ function AppShell() {
       setTutorialVisible(true);
     }
   }, [caseData]);
+
+  useEffect(() => {
+    document.body.dataset.uiPreset = uiPreset;
+    return () => {
+      delete document.body.dataset.uiPreset;
+    };
+  }, [uiPreset]);
+
+  useEffect(() => {
+    sessionStartedAtRef.current = Date.now();
+    setSessionElapsedSec(0);
+    setRestReminderVisible(false);
+  }, [caseData?.caseId]);
+
+  const scheduleRestReminder = useCallback((minutes: number) => {
+    if (minutes <= 0) {
+      nextRestReminderAtRef.current = null;
+      return;
+    }
+    nextRestReminderAtRef.current = Date.now() + (minutes * 60 * 1000);
+  }, []);
+
+  useEffect(() => {
+    scheduleRestReminder(restReminderMinutes);
+    if (restReminderMinutes === 0) {
+      setRestReminderVisible(false);
+    }
+  }, [restReminderMinutes, scheduleRestReminder]);
+
+  useEffect(() => {
+    const tick = () => {
+      const elapsed = Math.max(0, Math.floor((Date.now() - sessionStartedAtRef.current) / 1000));
+      setSessionElapsedSec(elapsed);
+
+      const nextReminderAt = nextRestReminderAtRef.current;
+      if (nextReminderAt === null || restReminderVisible) return;
+      if (Date.now() >= nextReminderAt) {
+        setRestReminderVisible(true);
+      }
+    };
+
+    tick();
+    const timer = window.setInterval(tick, 15000);
+    return () => window.clearInterval(timer);
+  }, [restReminderVisible]);
 
   // ── Evidence-acquired achievement ───────────────────────────────────────
   useEffect(() => {
@@ -428,9 +525,21 @@ function AppShell() {
   }, [caseData]);
 
   // ── Shared UI props ─────────────────────────────────────────────────────
-  const rootClass = `app-root${fontSizeMode === "large" ? " font-large" : ""}`;
+  const rootClass = [
+    "app-root",
+    fontSizeMode === "large" ? "font-large" : "",
+    uiPreset === "long-play" ? "long-session" : ""
+  ].filter(Boolean).join(" ");
   const toggleSettings = useCallback(() => setShowSettings((v) => !v), []);
   const requestResetProgress = useCallback(() => setResetConfirmVisible(true), []);
+  const handlePresetChange = useCallback((preset: "standard" | "long-play") => {
+    setUiPreset(preset);
+    if (preset === "long-play") {
+      setFontSizeMode("large");
+      setSfxOn(false);
+      if (restReminderMinutes === 0) setRestReminderMinutes(45);
+    }
+  }, [setUiPreset, setFontSizeMode, setSfxOn, restReminderMinutes, setRestReminderMinutes]);
 
   const handleExportLog = useCallback(async () => {
     if (!caseData || !saveData) return;
@@ -487,6 +596,23 @@ function AppShell() {
     reportEvidenceMin: caseData.report.minEvidenceToSubmit,
     reportSubmitted: saveData.reportSubmitted
   });
+  const reportAnsweredCount = caseData.report.questions.filter((q) => Boolean(saveData.reportAnswers[q.qId])).length;
+  const investigationProgressPercent = getInvestigationProgressPercent({
+    cluesCount: saveData.obtainedClueIds.length,
+    cluesTotal: clueMap.size,
+    interrogationSuccessCount: saveData.interrogationSuccessCount,
+    timelineFilledCount,
+    timelineTotal,
+    reportEvidenceCount: saveData.reportEvidenceClueIds.length,
+    reportEvidenceMin: caseData.report.minEvidenceToSubmit,
+    reportAnsweredCount,
+    reportTotal: caseData.report.questions.length,
+    reportSubmitted: saveData.reportSubmitted
+  });
+  const estimatedRemainingMinutes = getEstimatedRemainingMinutes(
+    caseData.meta.estimatedMinutes,
+    investigationProgressPercent
+  );
 
   // ── Main render ─────────────────────────────────────────────────────────
   return (
@@ -495,16 +621,43 @@ function AppShell() {
 
       {showSettings && (
         <SettingsPanel
+          uiPreset={uiPreset}
+          onPresetChange={handlePresetChange}
           fontSizeMode={fontSizeMode}
           onFontChange={setFontSizeMode}
           sfxOn={sfxOn}
           onSfxChange={setSfxOn}
+          restReminderMinutes={restReminderMinutes}
+          onRestReminderChange={setRestReminderMinutes}
           onExportLog={handleExportLog}
           onRequestResetProgress={requestResetProgress}
         />
       )}
 
       <section className="guide-strip">{nextGuide}</section>
+      <section className="pace-strip">
+        <div className="pace-grid">
+          <div className="pace-item">
+            <small>케이스 예상</small>
+            <strong>{caseData.meta.estimatedMinutes}m</strong>
+          </div>
+          <div className="pace-item">
+            <small>현재 세션</small>
+            <strong>{formatDuration(sessionElapsedSec)}</strong>
+          </div>
+          <div className="pace-item">
+            <small>진척도</small>
+            <strong>{investigationProgressPercent}%</strong>
+          </div>
+          <div className="pace-item">
+            <small>예상 잔여</small>
+            <strong>{estimatedRemainingMinutes}m</strong>
+          </div>
+        </div>
+        <div className="pace-progress">
+          <div className="pace-progress-fill" style={{ width: `${investigationProgressPercent}%` }} />
+        </div>
+      </section>
 
       <HUD
         cluesCount={saveData.obtainedClueIds.length}
@@ -519,6 +672,46 @@ function AppShell() {
       {loadWarnings.length > 0 && (
         <section className="panel warning-panel">
           {loadWarnings.map((warn, i) => <p key={`${warn}-${i}`}>{warn}</p>)}
+        </section>
+      )}
+
+      {restReminderVisible && (
+        <section className="panel rest-reminder-strip" role="status" aria-live="polite">
+          <p>
+            집중력이 떨어지기 전에 잠깐 쉬어가세요. 2-3분만 눈을 떼고 돌아오면 추리 정확도가 올라갑니다.
+          </p>
+          <div className="rest-reminder-actions">
+            <button
+              type="button"
+              className="btn-ghost"
+              onClick={() => {
+                setRestReminderVisible(false);
+                scheduleRestReminder(10);
+              }}
+            >
+              10분 후 다시
+            </button>
+            <button
+              type="button"
+              className="btn-ghost"
+              onClick={() => {
+                setRestReminderMinutes(0);
+                setRestReminderVisible(false);
+              }}
+            >
+              오늘은 끔
+            </button>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => {
+                setRestReminderVisible(false);
+                scheduleRestReminder(restReminderMinutes);
+              }}
+            >
+              확인
+            </button>
+          </div>
         </section>
       )}
 

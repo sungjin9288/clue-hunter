@@ -8,6 +8,19 @@ export interface NextActionGuideParams {
   reportSubmitted: boolean;
 }
 
+interface InvestigationProgressParams {
+  cluesCount: number;
+  cluesTotal: number;
+  interrogationSuccessCount: number;
+  timelineFilledCount: number;
+  timelineTotal: number;
+  reportEvidenceCount: number;
+  reportEvidenceMin: number;
+  reportAnsweredCount: number;
+  reportTotal: number;
+  reportSubmitted: boolean;
+}
+
 export function getNextActionGuide(params: NextActionGuideParams): string {
   if (params.cluesCount < 3) {
     return "다음 행동: 현장/문서 탭에서 시간 관련 단서를 3개 이상 모아 흐름을 잡으세요.";
@@ -25,6 +38,35 @@ export function getNextActionGuide(params: NextActionGuideParams): string {
     return "다음 행동: 보고서를 제출해 현재 추론의 판정을 확인하세요.";
   }
   return "다음 행동: 사건을 재검토해 더 높은 정확도로 재도전할 수 있습니다.";
+}
+
+export function getInvestigationProgressPercent(params: InvestigationProgressParams): number {
+  if (params.reportSubmitted) return 100;
+
+  const cluesProgress = params.cluesTotal > 0 ? params.cluesCount / params.cluesTotal : 0;
+  const interrogationProgress = Math.min(1, params.interrogationSuccessCount / 1);
+  const timelineProgress = params.timelineTotal > 0 ? params.timelineFilledCount / params.timelineTotal : 0;
+  const evidenceProgress = params.reportEvidenceMin > 0
+    ? Math.min(1, params.reportEvidenceCount / params.reportEvidenceMin)
+    : 0;
+  const answerProgress = params.reportTotal > 0 ? params.reportAnsweredCount / params.reportTotal : 0;
+
+  const normalized = (
+    cluesProgress +
+    interrogationProgress +
+    timelineProgress +
+    evidenceProgress +
+    answerProgress
+  ) / 5;
+
+  return Math.max(0, Math.min(100, Math.round(normalized * 100)));
+}
+
+export function getEstimatedRemainingMinutes(estimatedMinutes: number, progressPercent: number): number {
+  if (estimatedMinutes <= 0) return 0;
+  const ratio = Math.max(0, Math.min(100, progressPercent));
+  const remaining = Math.round((estimatedMinutes * (100 - ratio)) / 100);
+  return Math.max(0, remaining);
 }
 
 export function formatDuration(seconds: number): string {

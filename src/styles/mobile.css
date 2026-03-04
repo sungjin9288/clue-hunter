@@ -224,6 +224,54 @@ input {
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.26);
 }
 
+.pace-strip {
+  margin-top: 10px;
+  border: 1px solid rgba(97, 194, 255, 0.26);
+  border-radius: 12px;
+  background: linear-gradient(165deg, rgba(18, 25, 36, 0.78), rgba(11, 15, 23, 0.72));
+  padding: 10px 12px;
+}
+
+.pace-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.pace-item {
+  border: 1px solid rgba(145, 171, 204, 0.22);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: rgba(8, 13, 20, 0.45);
+}
+
+.pace-item small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+}
+
+.pace-item strong {
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pace-progress {
+  margin-top: 10px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.pace-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width 0.5s ease;
+}
+
 .hud-grid {
   margin-top: 10px;
   display: grid;
@@ -621,6 +669,24 @@ textarea {
   gap: 8px;
 }
 
+.rest-reminder-strip {
+  border-left: 4px solid var(--accent-2);
+  border-color: rgba(97, 194, 255, 0.35);
+  background: linear-gradient(150deg, rgba(14, 24, 35, 0.9), rgba(10, 17, 26, 0.9));
+}
+
+.rest-reminder-strip p {
+  margin: 0;
+}
+
+.rest-reminder-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -846,6 +912,28 @@ textarea {
 .font-large select,
 .font-large input {
   font-size: 18px;
+}
+
+.long-session {
+  line-height: 1.74;
+}
+
+body[data-ui-preset="long-play"]::before {
+  animation: none;
+  opacity: 0.38;
+}
+
+body[data-ui-preset="long-play"]::after {
+  animation: none;
+  filter: blur(36px);
+}
+
+body[data-ui-preset="long-play"] .content>section,
+body[data-ui-preset="long-play"] .hud-bar-fill,
+body[data-ui-preset="long-play"] .pace-progress-fill,
+body[data-ui-preset="long-play"] button,
+body[data-ui-preset="long-play"] .bottom-tabs button .tab-icon {
+  transition-duration: 0.08s;
 }
 
 /* Interrogation character select label */
@@ -1833,6 +1921,15 @@ textarea {
   }
 
   .system-dialog-actions button {
+    width: 100%;
+  }
+
+  .rest-reminder-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rest-reminder-actions button {
     width: 100%;
   }
 }
