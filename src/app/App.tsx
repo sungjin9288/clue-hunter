@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import "../styles/mobile.css";
 import { GameProvider, useGame } from "./GameContext";
 import type { TabId } from "./state";
@@ -67,24 +67,16 @@ function formatDuration(seconds: number): string {
   return `${h}h ${m}m`;
 }
 
-async function exportLog(
+function buildExportPayload(
   buildVersion: string,
   caseId: string,
   saveData: unknown
-): Promise<void> {
-  const payload = JSON.stringify(
+): string {
+  return JSON.stringify(
     { buildVersion, exportedAt: new Date().toISOString(), caseId, saveData },
     null,
     2
   );
-  try {
-    if (!navigator.clipboard?.writeText) throw new Error("Clipboard API unavailable");
-    await navigator.clipboard.writeText(payload);
-    alert("세션 로그가 클립보드에 복사되었습니다.\n공유 안내: 테스트 피드백 채널(카톡/디스코드/이슈)에 붙여넣어 전달해주세요.");
-  } catch {
-    window.prompt("클립보드 복사가 실패했습니다. 아래 내용을 수동 복사하세요.", payload);
-    alert("공유 안내: 복사한 로그를 테스트 피드백 채널에 붙여넣어 전달해주세요.");
-  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -123,7 +115,7 @@ interface SettingsPanelProps {
   sfxOn: boolean;
   onSfxChange: (on: boolean) => void;
   onExportLog: () => void;
-  onResetProgress: () => void;
+  onRequestResetProgress: () => void;
 }
 
 function SettingsPanel({
@@ -132,7 +124,7 @@ function SettingsPanel({
   sfxOn,
   onSfxChange,
   onExportLog,
-  onResetProgress
+  onRequestResetProgress
 }: SettingsPanelProps) {
   return (
     <section className="panel settings-panel">
@@ -157,13 +149,75 @@ function SettingsPanel({
       <button
         type="button"
         className="danger-outline"
-        onClick={() => {
-          if (window.confirm("현재 선택된 케이스 진행도를 초기화할까요?")) onResetProgress();
-        }}
+        onClick={onRequestResetProgress}
       >
         Reset Progress
       </button>
     </section>
+  );
+}
+
+interface DialogOverlayProps {
+  title: string;
+  message: ReactNode;
+  payload?: string;
+  confirmLabel: string;
+  onConfirm: () => void;
+  cancelLabel?: string;
+  onCancel?: () => void;
+  dangerConfirm?: boolean;
+}
+
+function DialogOverlay({
+  title,
+  message,
+  payload,
+  confirmLabel,
+  onConfirm,
+  cancelLabel,
+  onCancel,
+  dangerConfirm = false
+}: DialogOverlayProps) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && onCancel) {
+        e.preventDefault();
+        onCancel();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onCancel]);
+
+  return (
+    <div className="modal-backdrop" onClick={onCancel ? onCancel : undefined}>
+      <div className="modal system-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <h3>{title}</h3>
+        <p className="muted">{message}</p>
+        {payload && (
+          <textarea
+            className="system-dialog-textarea"
+            value={payload}
+            readOnly
+            aria-label="세션 로그 텍스트"
+          />
+        )}
+        <div className="system-dialog-actions">
+          {cancelLabel && onCancel && (
+            <button type="button" className="btn-ghost" onClick={onCancel}>
+              {cancelLabel}
+            </button>
+          )}
+          <button
+            type="button"
+            className={dangerConfirm ? "danger-outline" : "btn-primary"}
+            onClick={onConfirm}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -262,6 +316,8 @@ function AppShell() {
   const [coldOpenVisible, setColdOpenVisible] = useState(false);
   const [coldOpenIndex, setColdOpenIndex] = useState(0);
   const [tutorialVisible, setTutorialVisible] = useState(false);
+  const [resetConfirmVisible, setResetConfirmVisible] = useState(false);
+  const [exportNotice, setExportNotice] = useState<{ title: string; message: string; payload?: string } | null>(null);
 
   const prevCaseIdRef = useRef<string | null>(null);
   const prevClueCountRef = useRef(0);
@@ -342,6 +398,26 @@ function AppShell() {
   // ── Shared UI props ─────────────────────────────────────────────────────
   const rootClass = `app-root${fontSizeMode === "large" ? " font-large" : ""}`;
   const toggleSettings = useCallback(() => setShowSettings((v) => !v), []);
+  const requestResetProgress = useCallback(() => setResetConfirmVisible(true), []);
+
+  const handleExportLog = useCallback(async () => {
+    if (!caseData || !saveData) return;
+    const payload = buildExportPayload(BUILD_VERSION, caseData.caseId, saveData);
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("Clipboard API unavailable");
+      await navigator.clipboard.writeText(payload);
+      setExportNotice({
+        title: "세션 로그 복사 완료",
+        message: "테스트 피드백 채널(카톡/디스코드/이슈)에 붙여넣어 전달해주세요."
+      });
+    } catch {
+      setExportNotice({
+        title: "클립보드 복사 실패",
+        message: "아래 로그를 수동 복사해 테스트 피드백 채널로 전달해주세요.",
+        payload
+      });
+    }
+  }, [caseData, saveData]);
 
   // ── Early-out: error state ──────────────────────────────────────────────
   if (loadErrors.length > 0) {
@@ -391,8 +467,8 @@ function AppShell() {
           onFontChange={setFontSizeMode}
           sfxOn={sfxOn}
           onSfxChange={setSfxOn}
-          onExportLog={() => exportLog(BUILD_VERSION, caseData.caseId, saveData)}
-          onResetProgress={resetSave}
+          onExportLog={handleExportLog}
+          onRequestResetProgress={requestResetProgress}
         />
       )}
 
@@ -540,6 +616,32 @@ function AppShell() {
             localStorage.setItem("noir_tutorial_done", "1");
             setTutorialVisible(false);
           }}
+        />
+      )}
+
+      {resetConfirmVisible && (
+        <DialogOverlay
+          title="진행도 초기화"
+          message="현재 선택된 케이스의 진행도를 초기화할까요?"
+          confirmLabel="초기화"
+          cancelLabel="취소"
+          dangerConfirm
+          onCancel={() => setResetConfirmVisible(false)}
+          onConfirm={() => {
+            resetSave();
+            setResetConfirmVisible(false);
+          }}
+        />
+      )}
+
+      {exportNotice && (
+        <DialogOverlay
+          title={exportNotice.title}
+          message={exportNotice.message}
+          payload={exportNotice.payload}
+          confirmLabel="확인"
+          onConfirm={() => setExportNotice(null)}
+          onCancel={() => setExportNotice(null)}
         />
       )}
 
