@@ -1,6 +1,8 @@
 import type { CaseSchemaV01 } from "../engine/caseTypes";
 import type { CaseSaveV01 } from "../engine/SaveService";
 import { TimelineBoard } from "../components/TimelineBoard";
+import { ClueConnectionBoard } from "../components/ClueConnectionBoard";
+import { CaseResultScreen } from "./CaseResultScreen";
 import { TimelineEngine } from "../engine/TimelineEngine";
 import { ReportEngine, type GradeResult } from "../engine/ReportEngine";
 
@@ -9,10 +11,12 @@ interface Props {
   saveData: CaseSaveV01;
   onPlace: (slotId: string, clueId: string) => void;
   onClear: (slotId: string) => void;
+  onDiscover: (connectionId: string) => void;
   onSetReportAnswer: (qId: string, optionId: string) => void;
   onToggleEvidence: (clueId: string) => void;
   onUseHint: () => void;
   onSubmit: (result: GradeResult) => void;
+  onReset: () => void;
   gradeResult: GradeResult | null;
 }
 
@@ -21,14 +25,19 @@ export function BoardReportScreen({
   saveData,
   onPlace,
   onClear,
+  onDiscover,
   onSetReportAnswer,
   onToggleEvidence,
   onUseHint,
   onSubmit,
+  onReset,
   gradeResult
 }: Props) {
+  if (saveData.reportSubmitted && gradeResult) {
+    return <CaseResultScreen caseData={caseData} gradeResult={gradeResult} onReset={onReset} />;
+  }
+
   const solved = TimelineEngine.isSolved(caseData, saveData.timelinePlacement);
-  const questionMap = new Map(caseData.report.questions.map((q) => [q.qId, q]));
 
   return (
     <section>
@@ -38,6 +47,12 @@ export function BoardReportScreen({
         placement={saveData.timelinePlacement}
         onPlace={onPlace}
         onClear={onClear}
+      />
+
+      <ClueConnectionBoard
+        caseData={caseData}
+        saveData={saveData}
+        onDiscover={onDiscover}
       />
 
       <section className="panel">
@@ -83,12 +98,12 @@ export function BoardReportScreen({
               {saveData.hintUses <= 0
                 ? "아직 없음"
                 : [
-                    saveData.hintUses >= 1 ? q.hint.l1 : null,
-                    saveData.hintUses >= 2 ? q.hint.l2 : null,
-                    saveData.hintUses >= 3 ? q.hint.l3 : null
-                  ]
-                    .filter(Boolean)
-                    .join(" / ")}
+                  saveData.hintUses >= 1 ? q.hint.l1 : null,
+                  saveData.hintUses >= 2 ? q.hint.l2 : null,
+                  saveData.hintUses >= 3 ? q.hint.l3 : null
+                ]
+                  .filter(Boolean)
+                  .join(" / ")}
             </p>
           </div>
         ))}
@@ -129,48 +144,11 @@ export function BoardReportScreen({
           보고서 제출/채점
         </button>
 
-        {gradeResult ? (
+        {gradeResult && !gradeResult.canSubmit && (
           <div className="grade-box">
-            {gradeResult.canSubmit ? (
-              <>
-                <p className="rank-display">
-                  종합 랭크: <strong>{gradeResult.rank}</strong>
-                </p>
-                {gradeResult.rankReason ? (
-                  <p className="muted">{gradeResult.rankReason}</p>
-                ) : null}
-                <p>
-                  점수: {gradeResult.scorePercent}% ({gradeResult.passed}/{gradeResult.total})
-                </p>
-                <p className="muted">
-                  챌린지 상태: {gradeResult.challengeStatus.noHint ? "No-Hint✓" : "No-Hint✗"} ·{" "}
-                  {gradeResult.challengeStatus.tightEvidence ? "Tight-Evidence✓" : "Tight-Evidence✗"}
-                </p>
-                {gradeResult.details.map((d) => (
-                  <div key={d.qId}>
-                    <p>
-                      {d.qId}: {d.pass ? "통과" : "실패"} (정답 {String(d.optionCorrect)}, 근거 {String(d.evidenceSatisfied)})
-                    </p>
-                    {(() => {
-                      const question = questionMap.get(d.qId);
-                      const feedback = question?.options.find((o) => o.id === d.selectedOptionId)?.feedbackMd;
-                      return feedback ? <p className="muted">{feedback}</p> : null;
-                    })()}
-                  </div>
-                ))}
-
-                {gradeResult.rank === "S" && caseData.explanations.secretEndingMd && (
-                  <div className="secret-ending-box">
-                    <h4>[S랭크 보상] 시크릿 엔딩</h4>
-                    <p>{caseData.explanations.secretEndingMd}</p>
-                  </div>
-                )}
-              </>
-            ) : (
-              <p>{gradeResult.reason}</p>
-            )}
+            <p>{gradeResult.reason}</p>
           </div>
-        ) : null}
+        )}
       </section>
     </section>
   );

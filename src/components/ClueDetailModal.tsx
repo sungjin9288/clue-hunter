@@ -56,6 +56,14 @@ export function ClueDetailModal({ caseData, clueId, onClose }: Props) {
           <p>{clue.text}</p>
         </div>
 
+        {/* Detective's inner monologue (flavor text) */}
+        {clue.detectiveFlavor && (
+          <blockquote className="detective-flavor">
+            <span className="detective-flavor-icon">🕵️</span>
+            <em>{clue.detectiveFlavor}</em>
+          </blockquote>
+        )}
+
         {/* Tag badges */}
         <div className="clue-tags">
           {clue.tags.time && (

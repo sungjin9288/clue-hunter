@@ -1,5 +1,12 @@
 import type { CaseSchemaV01 } from "./caseTypes";
 
+export interface ChatLogEntry {
+  speaker: string;       // characterId or "player"
+  text: string;          // What was said
+  type: "npc" | "player" | "system"; // Bubble style
+  timestamp?: number;
+}
+
 export interface CaseSaveV01 {
   version: "0.1";
   caseId: string;
@@ -7,6 +14,9 @@ export interface CaseSaveV01 {
   readDocIds: string[];
   interrogationNodeProgress: Record<string, string>;
   interrogationSuccessCount: number;
+  trustLevels: Record<string, number>;
+  discoveredConnectionIds: string[];
+  chatLog: Record<string, ChatLogEntry[]>; // characterId -> conversation history
   timelinePlacement: Record<string, string | null>;
   reportAnswers: Record<string, string>;
   reportEvidenceClueIds: string[];
@@ -106,6 +116,11 @@ export function createInitialSave(caseData: CaseSchemaV01): CaseSaveV01 {
     timelinePlacement[slot.slotId] = null;
   }
 
+  const trustLevels: Record<string, number> = {};
+  for (const i of caseData.interrogations) {
+    trustLevels[i.characterId] = 3; // Start with full trust (3 hearts)
+  }
+
   return {
     version: "0.1",
     caseId: caseData.caseId,
@@ -113,6 +128,9 @@ export function createInitialSave(caseData: CaseSchemaV01): CaseSaveV01 {
     readDocIds: [],
     interrogationNodeProgress,
     interrogationSuccessCount: 0,
+    trustLevels,
+    discoveredConnectionIds: [],
+    chatLog: {},
     timelinePlacement,
     reportAnswers: {},
     reportEvidenceClueIds: [],
@@ -138,6 +156,9 @@ export const SaveService = {
         readDocIds: parsed.readDocIds ?? [],
         interrogationNodeProgress: parsed.interrogationNodeProgress ?? {},
         interrogationSuccessCount: parsed.interrogationSuccessCount ?? 0,
+        trustLevels: parsed.trustLevels ?? {},
+        discoveredConnectionIds: parsed.discoveredConnectionIds ?? [],
+        chatLog: parsed.chatLog ?? {},
         timelinePlacement: parsed.timelinePlacement ?? {},
         reportAnswers: parsed.reportAnswers ?? {},
         reportEvidenceClueIds: parsed.reportEvidenceClueIds ?? [],

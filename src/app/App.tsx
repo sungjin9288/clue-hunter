@@ -14,6 +14,7 @@ import { DocumentsScreen } from "../screens/DocumentsScreen";
 import { InterrogationScreen } from "../screens/InterrogationScreen";
 import { BoardReportScreen } from "../screens/BoardReportScreen";
 import { InventoryPanel } from "../components/InventoryPanel";
+import { TutorialOverlay } from "../components/TutorialOverlay";
 import { ClueDetailModal } from "../components/ClueDetailModal";
 import { ColdOpenOverlay } from "../components/ColdOpenOverlay";
 import { AchievementOverlay } from "../components/AchievementOverlay";
@@ -248,6 +249,9 @@ function AppShell() {
     submitReport,
     consumeClearAchievements,
     registerInterrogationSuccess,
+    decreaseTrust,
+    discoverConnection,
+    appendChatLog,
     resetSave
   } = useGame();
 
@@ -257,6 +261,7 @@ function AppShell() {
   const [showSettings, setShowSettings] = useState(false);
   const [coldOpenVisible, setColdOpenVisible] = useState(false);
   const [coldOpenIndex, setColdOpenIndex] = useState(0);
+  const [tutorialVisible, setTutorialVisible] = useState(false);
 
   const prevCaseIdRef = useRef<string | null>(null);
   const prevClueCountRef = useRef(0);
@@ -268,14 +273,23 @@ function AppShell() {
     prevClueCountRef.current = saveData.obtainedClueIds.length;
 
     const key = `${INTRO_SEEN_PREFIX}${caseData.caseId}`;
-    setColdOpenVisible(localStorage.getItem(key) !== "1");
+    const wantColdOpen = localStorage.getItem(key) !== "1";
+    setColdOpenVisible(wantColdOpen);
     setColdOpenIndex(0);
+
+    if (!wantColdOpen && localStorage.getItem("noir_tutorial_done") !== "1") {
+      setTutorialVisible(true);
+    }
   }, [caseData?.caseId, saveData?.caseId]);
 
   const closeColdOpen = useCallback(() => {
     if (!caseData) return;
     localStorage.setItem(`${INTRO_SEEN_PREFIX}${caseData.caseId}`, "1");
     setColdOpenVisible(false);
+
+    if (localStorage.getItem("noir_tutorial_done") !== "1") {
+      setTutorialVisible(true);
+    }
   }, [caseData]);
 
   // ── Evidence-acquired achievement ───────────────────────────────────────
@@ -443,6 +457,10 @@ function AppShell() {
               registerInterrogationSuccess();
               showAchievement("LIE DETECTED", "good");
             }}
+            onEvidenceFail={(characterId) => {
+              decreaseTrust(characterId);
+            }}
+            onAppendChatLog={appendChatLog}
             playSfx={(type) => {
               if (!sfxOn) return;
               if (type === "success" || type === "clue") playBeep("good");
@@ -457,6 +475,7 @@ function AppShell() {
             saveData={saveData}
             onPlace={placeTimeline}
             onClear={clearTimeline}
+            onDiscover={discoverConnection}
             onSetReportAnswer={setReportAnswer}
             onToggleEvidence={toggleEvidence}
             onUseHint={() => {
@@ -464,6 +483,7 @@ function AppShell() {
               showAchievement("HINT USED", "bad");
             }}
             onSubmit={submitReport}
+            onReset={resetSave}
             gradeResult={gradeResult}
           />
         )}
@@ -507,6 +527,15 @@ function AppShell() {
           index={coldOpenIndex}
           onNext={() => setColdOpenIndex((i) => Math.min(i + 1, coldOpenSlides.length - 1))}
           onSkip={closeColdOpen}
+        />
+      )}
+
+      {tutorialVisible && (
+        <TutorialOverlay
+          onDone={() => {
+            localStorage.setItem("noir_tutorial_done", "1");
+            setTutorialVisible(false);
+          }}
         />
       )}
 

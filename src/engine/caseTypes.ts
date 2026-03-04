@@ -9,6 +9,7 @@ export interface CaseSchemaV01 {
     tone: "hardboiled";
     estimatedMinutes: number;
     difficulty: number;
+    narratorVoice?: string; // Opening monologue shown before cold open
   };
   characters: {
     victim: { id: "victim"; name: string; bio: string; lockedBio?: { text: string; unlockClueId: string }[] };
@@ -19,6 +20,7 @@ export interface CaseSchemaV01 {
     sceneId: string;
     title: string;
     descriptionMd: string;
+    atmosphereMd?: string; // Detective's inner monologue on entering a scene
     hotspots: {
       hotspotId: string;
       label: string;
@@ -37,8 +39,16 @@ export interface CaseSchemaV01 {
     clueId: string;
     title: string;
     text: string;
+    detectiveFlavor?: string; // Detective's internal reaction upon seeing this clue
     tags: { time?: string; location?: string; personId?: string };
     source: { type: SourceType; id: string };
+  }[];
+  clueConnections?: {
+    connectionId: string;
+    clueIds: [string, string]; // Exactly two clue IDs that must both be obtained
+    deductionTitle: string;    // Short title of the insight
+    deductionMd: string;       // The deduction text revealed when both clues are connected
+    revealClueIds?: string[];  // Optional bonus clues unlocked by the insight
   }[];
   interrogations: {
     characterId: string;
@@ -57,6 +67,7 @@ export interface CaseSchemaV01 {
           successNodeId: string;
           failNodeId: string;
           grantClueIds?: string[];
+          reactionText?: { success: string; fail: string }; // Dramatic UI text on outcome
         };
       }[];
     }[];

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { CaseSchemaV01 } from "../engine/caseTypes";
 import { TimelineEngine } from "../engine/TimelineEngine";
+import { InlineHelp } from "../components/InlineHelp";
 
 interface Props {
   caseData: CaseSchemaV01;
@@ -37,7 +38,10 @@ export function TimelineBoard({ caseData, obtainedClueIds, placement, onPlace, o
   return (
     <section className="panel">
       <h3 style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "0 0 4px 0" }}>
-        <span>📌 타임라인</span>
+        <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          📌 타임라인
+          <InlineHelp text="단서를 시간 순서에 맞게 슬롯으로 드래그해 사건의 재구성을 완성하세요." />
+        </span>
         <span style={{ fontSize: "0.8rem", color: allFilled ? "var(--success)" : "var(--muted)", fontWeight: "normal" }}>
           {filledCount}/{totalSlots} {allFilled ? "✅ 완성" : ""}
         </span>

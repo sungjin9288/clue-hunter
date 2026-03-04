@@ -1,6 +1,7 @@
 import ReactMarkdown from "react-markdown";
 import type { CaseSchemaV01 } from "../engine/caseTypes";
 import { highlightTimesInMarkdown } from "../components/TimeHighlight";
+import { InlineHelp } from "../components/InlineHelp";
 
 interface Props {
   caseData: CaseSchemaV01;
@@ -27,6 +28,10 @@ export function DocumentsScreen({
 
   return (
     <section className="panel docs-layout">
+      <h2 style={{ display: "flex", alignItems: "center", gap: 8, margin: "0 0 16px", gridColumn: "1 / -1" }}>
+        📄 문서 열람
+        <InlineHelp text="선택한 문서를 열어 숨겨진 단서를 획득하세요. 날짜, 시간, 인물 관계가 중요합니다." />
+      </h2>
       <aside>
         <h3>문서 목록</h3>
         {caseData.documents.map((doc) => (

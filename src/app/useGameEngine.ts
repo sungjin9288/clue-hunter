@@ -5,7 +5,8 @@ import {
   createInitialSave,
   SaveService,
   type CampaignProgressV01,
-  type CaseSaveV01
+  type CaseSaveV01,
+  type ChatLogEntry
 } from "../engine/SaveService";
 import type { CaseSchemaV01 } from "../engine/caseTypes";
 import { TimelineEngine } from "../engine/TimelineEngine";
@@ -193,6 +194,9 @@ export interface GameEngineValue {
   submitReport: (result: GradeResult) => void;
   consumeClearAchievements: () => void;
   registerInterrogationSuccess: () => void;
+  decreaseTrust: (characterId: string) => void;
+  discoverConnection: (connectionId: string) => void;
+  appendChatLog: (characterId: string, entry: ChatLogEntry) => void;
   resetSave: () => void;
 }
 
@@ -415,6 +419,37 @@ export function useGameEngine(): GameEngineValue {
       interrogationSuccessCount: prev.interrogationSuccessCount + 1
     }));
 
+  const decreaseTrust = (characterId: string) =>
+    patch((prev) => {
+      const current = prev.trustLevels[characterId] ?? 3;
+      if (current <= 0) return prev;
+      return {
+        ...prev,
+        trustLevels: { ...prev.trustLevels, [characterId]: current - 1 }
+      };
+    });
+
+  const discoverConnection = (connectionId: string) =>
+    patch((prev) => {
+      if (prev.discoveredConnectionIds.includes(connectionId)) return prev;
+      return {
+        ...prev,
+        discoveredConnectionIds: [...prev.discoveredConnectionIds, connectionId]
+      };
+    });
+
+  const appendChatLog = (characterId: string, entry: ChatLogEntry) =>
+    patch((prev) => {
+      const existing = prev.chatLog[characterId] ?? [];
+      return {
+        ...prev,
+        chatLog: {
+          ...prev.chatLog,
+          [characterId]: [...existing, { ...entry, timestamp: Date.now() }]
+        }
+      };
+    });
+
   const resetSave = () => {
     if (!caseData) return;
     SaveService.clear(caseData.caseId);
@@ -458,6 +493,9 @@ export function useGameEngine(): GameEngineValue {
     submitReport,
     consumeClearAchievements,
     registerInterrogationSuccess,
+    decreaseTrust,
+    discoverConnection,
+    appendChatLog,
     resetSave
   };
 }
