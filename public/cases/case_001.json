@@ -5,7 +5,7 @@
   "synopsis": "서버실 메인 콘솔에서 급성 심정지로 사망한 채 발견된 리드 개발자. 누군가 독을 탔고, 그 틈에 백도어를 심었다.",
   "meta": {
     "tone": "hardboiled",
-    "estimatedMinutes": 45,
+    "estimatedMinutes": 60,
     "difficulty": 2
   },
   "characters": {

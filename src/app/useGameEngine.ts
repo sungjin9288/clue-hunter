@@ -47,81 +47,81 @@ const CASE_CATALOG: Record<CaseId, CaseCatalogEntry> = {
   },
   case_001: {
     label: "Midnight Backdoor",
-    estimatedMinutes: 45
+    estimatedMinutes: 60
   },
   case_002: {
     label: "Neon Alibi",
-    estimatedMinutes: 55,
+    estimatedMinutes: 67,
     unlockBy: "case_001"
   },
   case_003: {
     label: "Ashen Witness",
-    estimatedMinutes: 60,
+    estimatedMinutes: 74,
     unlockBy: "case_002"
   },
   case_004: {
     label: "Glass Contraband",
-    estimatedMinutes: 62,
+    estimatedMinutes: 81,
     unlockBy: "case_003"
   },
   case_005: {
     label: "Rainline Betrayal",
-    estimatedMinutes: 65,
+    estimatedMinutes: 88,
     unlockBy: "case_004"
   },
   case_006: {
     label: "Blue Ledger",
-    estimatedMinutes: 68,
+    estimatedMinutes: 95,
     unlockBy: "case_005"
   },
   case_007: {
     label: "Silent Dockyard",
-    estimatedMinutes: 71,
+    estimatedMinutes: 102,
     unlockBy: "case_006"
   },
   case_008: {
     label: "Last Umbra",
-    estimatedMinutes: 74,
+    estimatedMinutes: 109,
     unlockBy: "case_007"
   },
   case_009: {
     label: "Hollow Checkpoint",
-    estimatedMinutes: 78,
+    estimatedMinutes: 116,
     unlockBy: "case_008"
   },
   case_010: {
     label: "Pale Trigger",
-    estimatedMinutes: 82,
+    estimatedMinutes: 123,
     unlockBy: "case_009"
   },
   case_011: {
     label: "Burnt Envelope",
-    estimatedMinutes: 86,
+    estimatedMinutes: 130,
     unlockBy: "case_010"
   },
   case_012: {
     label: "Dead Frequency",
-    estimatedMinutes: 90,
+    estimatedMinutes: 137,
     unlockBy: "case_011"
   },
   case_013: {
     label: "Redacted Mercy",
-    estimatedMinutes: 94,
+    estimatedMinutes: 144,
     unlockBy: "case_012"
   },
   case_014: {
     label: "Last Transit",
-    estimatedMinutes: 98,
+    estimatedMinutes: 151,
     unlockBy: "case_013"
   },
   case_015: {
     label: "Null Testament",
-    estimatedMinutes: 102,
+    estimatedMinutes: 158,
     unlockBy: "case_014"
   },
   case_016: {
     label: "Midnight Doctrine",
-    estimatedMinutes: 106,
+    estimatedMinutes: 165,
     unlockBy: "case_015"
   }
 };
