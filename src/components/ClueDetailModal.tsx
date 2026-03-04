@@ -44,18 +44,38 @@ export function ClueDetailModal({ caseData, clueId, onClose }: Props) {
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h3>{clue.title}</h3>
-        <p>{clue.text}</p>
-        <p className="muted">
+      <div className="modal clue-modal" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="clue-modal-header">
+          <span className="clue-modal-icon">🔬</span>
+          <h3 style={{ margin: "0 0 0 8px", flex: 1 }}>{clue.title}</h3>
+        </div>
+
+        {/* Evidence text in typewriter style */}
+        <div className="clue-modal-body">
+          <p>{clue.text}</p>
+        </div>
+
+        {/* Tag badges */}
+        <div className="clue-tags">
+          {clue.tags.time && (
+            <span className="clue-tag clue-tag-time">🕐 {clue.tags.time}</span>
+          )}
+          {clue.tags.location && (
+            <span className="clue-tag clue-tag-location">📍 {clue.tags.location}</span>
+          )}
+          {clue.tags.personId && (
+            <span className="clue-tag clue-tag-person">🧑 {clue.tags.personId}</span>
+          )}
+        </div>
+
+        {/* Source */}
+        <p className="muted" style={{ fontSize: "0.75rem", marginTop: 12, borderTop: "1px solid var(--line)", paddingTop: 8 }}>
           출처: {clue.source.type} / {clue.source.id}
         </p>
-        <p className="muted">
-          태그: {clue.tags.time ?? "-"} | {clue.tags.location ?? "-"} |{" "}
-          {clue.tags.personId ?? "-"}
-        </p>
-        <button type="button" onClick={onClose}>
-          닫기
+
+        <button type="button" onClick={onClose} style={{ width: "100%", marginTop: 8 }}>
+          닫기 (ESC)
         </button>
       </div>
     </div>

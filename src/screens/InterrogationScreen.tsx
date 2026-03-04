@@ -11,6 +11,7 @@ interface Props {
   onMoveNode: (characterId: string, nodeId: string) => void;
   onGrantClues: (clueIds: string[]) => void;
   onEvidenceSuccess: () => void;
+  playSfx: (type: "beep" | "clue" | "success" | "fail") => void;
 }
 
 export function InterrogationScreen({
@@ -20,12 +21,16 @@ export function InterrogationScreen({
   onSelectCharacter,
   onMoveNode,
   onGrantClues,
-  onEvidenceSuccess
+  onEvidenceSuccess,
+  playSfx
 }: Props) {
   const firstCharacterId = caseData.interrogations[0]?.characterId ?? "";
   const characterId = selectedCharacterId ?? firstCharacterId;
-  const [pickedEvidence, setPickedEvidence] = useState<string>("");
   const [resultMessage, setResultMessage] = useState<string>("");
+  const [dragOverChoiceId, setDragOverChoiceId] = useState<string | null>(null);
+  const [animState, setAnimState] = useState<"shake" | "flash" | null>(null);
+  const [displayedText, setDisplayedText] = useState("");
+  const [typingDone, setTypingDone] = useState(false);
 
   // Resolve character display name
   const allCharacters = [
@@ -46,16 +51,79 @@ export function InterrogationScreen({
   const handleCharacterChange = (newId: string) => {
     onSelectCharacter(newId);
     setResultMessage("");
-    setPickedEvidence("");
   };
 
   useEffect(() => {
     setResultMessage("");
-    setPickedEvidence("");
+    setDragOverChoiceId(null);
   }, [characterId]);
 
+  // Typewriter effect: re-run whenever the node text changes
+  useEffect(() => {
+    if (!node?.text) { setDisplayedText(""); setTypingDone(false); return; }
+    setDisplayedText("");
+    setTypingDone(false);
+    let i = 0;
+    const text = node.text;
+    const interval = setInterval(() => {
+      i++;
+      setDisplayedText(text.slice(0, i));
+      if (i >= text.length) {
+        clearInterval(interval);
+        setTypingDone(true);
+      }
+    }, 18); // ~18ms per character
+    return () => clearInterval(interval);
+  }, [node?.text, node?.nodeId]);
+
+  const triggerAnim = (type: "shake" | "flash") => {
+    setAnimState(type);
+    setTimeout(() => setAnimState(null), 600);
+  };
+
+  const handleDropEvidence = (e: React.DragEvent, choiceId: string) => {
+    e.preventDefault();
+    setDragOverChoiceId(null);
+    const droppedClueId = e.dataTransfer.getData("text/plain");
+    if (!droppedClueId) return;
+
+    const applied = InterrogationEngine.applyChoice({
+      caseData,
+      characterId,
+      currentNodeId,
+      choiceId,
+      presentedClueId: droppedClueId
+    });
+
+    if (!applied.ok) {
+      setResultMessage(applied.error);
+      triggerAnim("flash");
+      playSfx("fail");
+      return;
+    }
+
+    onMoveNode(characterId, applied.nextNodeId);
+    if (applied.grantClueIds.length > 0) onGrantClues(applied.grantClueIds);
+
+    if (applied.evidenceSuccess === true) {
+      onEvidenceSuccess();
+      setResultMessage("증거 제시 성공! 상대가 동요합니다.");
+      triggerAnim("shake");
+      playSfx("success");
+    } else if (applied.evidenceSuccess === false) {
+      setResultMessage("엉뚱한 증거입니다. (제시 실패)");
+      triggerAnim("flash");
+      playSfx("fail");
+    } else {
+      setResultMessage("");
+      playSfx("beep");
+    }
+  };
+
+  const animClass = animState === "shake" ? "anim-shake" : animState === "flash" ? "anim-flash-red" : "";
+
   return (
-    <section className="panel">
+    <section className={`panel ${animClass}`}>
       <h2>심문</h2>
 
       {/* Character selector — was in App.tsx */}
@@ -75,8 +143,10 @@ export function InterrogationScreen({
       ) : (
         <>
           <article className="dialog-box">
-            <strong>{getCharName(node.speakerId)}</strong>
-            <p>{node.text}</p>
+            <strong style={{ display: "block", marginBottom: 6, color: "var(--accent)" }}>
+              🎙 {getCharName(node.speakerId)}
+            </strong>
+            <p className={`npc-text${typingDone ? " done" : ""}`}>{displayedText}</p>
           </article>
 
           {node.choices.length === 0 && (
@@ -86,17 +156,40 @@ export function InterrogationScreen({
           <div className="choices">
             {node.choices.map((choice) => {
               const isEvidenceChoice = Boolean(choice.evidenceCheck);
+              if (isEvidenceChoice) {
+                // Render as Droppable Target
+                const isOver = dragOverChoiceId === choice.choiceId;
+                return (
+                  <div
+                    key={choice.choiceId}
+                    className={`droppable-target choice-row ${isOver ? "drag-over" : ""}`}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragOverChoiceId(choice.choiceId);
+                    }}
+                    onDragLeave={() => setDragOverChoiceId(null)}
+                    onDrop={(e) => handleDropEvidence(e, choice.choiceId)}
+                  >
+                    <p className="muted" style={{ margin: 0, textAlign: "center", fontStyle: "italic" }}>
+                      [인벤토리에서 단서를 끌어다 던지세요]<br />
+                      {choice.label}
+                    </p>
+                  </div>
+                );
+              }
+
+              // Normal choice
               return (
                 <div key={choice.choiceId} className="choice-row">
                   <button
                     type="button"
+                    style={{ width: "100%", textAlign: "left" }}
                     onClick={() => {
                       const applied = InterrogationEngine.applyChoice({
                         caseData,
                         characterId,
                         currentNodeId,
-                        choiceId: choice.choiceId,
-                        presentedClueId: isEvidenceChoice ? pickedEvidence : undefined
+                        choiceId: choice.choiceId
                       });
 
                       if (!applied.ok) {
@@ -104,39 +197,14 @@ export function InterrogationScreen({
                         return;
                       }
 
+                      playSfx("beep");
                       onMoveNode(characterId, applied.nextNodeId);
                       if (applied.grantClueIds.length > 0) onGrantClues(applied.grantClueIds);
-
-                      if (applied.evidenceSuccess === true) {
-                        onEvidenceSuccess();
-                        setResultMessage("증거 제시 성공 ✓");
-                      } else if (applied.evidenceSuccess === false) {
-                        setResultMessage("증거 제시 실패 ✗");
-                      } else {
-                        setResultMessage("");
-                      }
+                      setResultMessage("");
                     }}
                   >
                     {choice.label}
                   </button>
-
-                  {isEvidenceChoice && (
-                    <select
-                      value={pickedEvidence}
-                      onChange={(e) => setPickedEvidence(e.target.value)}
-                    >
-                      <option value="">제시할 단서 선택</option>
-                      {saveData.obtainedClueIds.map((id) => {
-                        const clue = caseData.clues.find((c) => c.clueId === id);
-                        if (!clue) return null;
-                        return (
-                          <option key={id} value={id}>
-                            {clue.title}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  )}
                 </div>
               );
             })}

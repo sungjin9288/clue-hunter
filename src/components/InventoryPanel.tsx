@@ -29,7 +29,15 @@ export function InventoryPanel(props: Props) {
 
           const attached = props.reportEvidenceClueIds.includes(clueId);
           return (
-            <div className="clue-card" key={clueId}>
+            <div
+              className="clue-card draggable-item"
+              key={clueId}
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData("text/plain", clueId);
+                e.dataTransfer.effectAllowed = "copy";
+              }}
+            >
               <button
                 type="button"
                 className="link-btn"

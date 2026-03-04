@@ -5,6 +5,7 @@ import type { TabId } from "./state";
 import { useSettings } from "./useSettings";
 import { useAchievement } from "./useAchievement";
 import { BUILD_VERSION } from "./version";
+import { playBeep } from "./audio";
 
 import { CaseSelector } from "../components/CaseSelector";
 import { OverviewScreen } from "../screens/OverviewScreen";
@@ -21,12 +22,12 @@ import { AchievementOverlay } from "../components/AchievementOverlay";
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TABS: { id: TabId; label: string }[] = [
-  { id: "overview", label: "사건개요" },
-  { id: "scene", label: "현장" },
-  { id: "docs", label: "문서" },
-  { id: "interrogation", label: "심문" },
-  { id: "board-report", label: "보드&보고서" }
+const TABS: { id: TabId; icon: string; label: string }[] = [
+  { id: "overview", icon: "🗂️", label: "사건개요" },
+  { id: "scene", icon: "🔍", label: "현장" },
+  { id: "docs", icon: "📄", label: "문서" },
+  { id: "interrogation", icon: "🎙️", label: "심문" },
+  { id: "board-report", icon: "📋", label: "보드" }
 ];
 
 const INTRO_SEEN_PREFIX = "noir_mvp_intro_seen_";
@@ -184,11 +185,15 @@ function HUD({
   evidenceCount,
   evidenceMin
 }: HUDProps) {
+  const cluesPct = cluesTotal > 0 ? Math.round((cluesCount / cluesTotal) * 100) : 0;
+  const timelinePct = timelineTotal > 0 ? Math.round((timelineFilledCount / timelineTotal) * 100) : 0;
+  const evidencePct = evidenceMin > 0 ? Math.min(100, Math.round((evidenceCount / evidenceMin) * 100)) : 0;
   return (
     <section className="hud-grid">
       <div className="hud-item">
         <small>단서</small>
         <strong>{cluesCount}/{cluesTotal}</strong>
+        <div className="hud-bar"><div className="hud-bar-fill" style={{ width: `${cluesPct}%` }} /></div>
       </div>
       <div className="hud-item">
         <small>심문 성공</small>
@@ -197,10 +202,12 @@ function HUD({
       <div className="hud-item">
         <small>타임라인</small>
         <strong>{timelineFilledCount}/{timelineTotal}</strong>
+        <div className="hud-bar"><div className="hud-bar-fill" style={{ width: `${timelinePct}%` }} /></div>
       </div>
       <div className="hud-item">
         <small>보고서 근거</small>
         <strong>{evidenceCount}/{evidenceMin}</strong>
+        <div className="hud-bar"><div className="hud-bar-fill" style={{ width: `${evidencePct}%`, background: evidenceCount >= evidenceMin ? 'var(--success)' : undefined }} /></div>
       </div>
     </section>
   );
@@ -436,6 +443,11 @@ function AppShell() {
               registerInterrogationSuccess();
               showAchievement("LIE DETECTED", "good");
             }}
+            playSfx={(type) => {
+              if (!sfxOn) return;
+              if (type === "success" || type === "clue") playBeep("good");
+              else playBeep("bad");
+            }}
           />
         )}
 
@@ -466,13 +478,14 @@ function AppShell() {
       />
 
       <nav className="bottom-tabs">
-        {TABS.map(({ id, label }) => (
+        {TABS.map(({ id, icon, label }) => (
           <button
             key={id}
             type="button"
             className={activeTab === id ? "active" : ""}
             onClick={() => setActiveTab(id)}
           >
+            <span className="tab-icon">{icon}</span>
             {label}
           </button>
         ))}
