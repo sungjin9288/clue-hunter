@@ -9,7 +9,10 @@
     "preview": "vite preview",
     "lint": "tsc -b --pretty false",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ci": "playwright test --project=mobile-chromium --project=mobile-webkit",
+    "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -17,6 +20,7 @@
     "react-markdown": "^9.0.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",

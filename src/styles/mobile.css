@@ -631,7 +631,7 @@ textarea {
   display: grid;
   place-items: center;
   padding: 14px;
-  z-index: 20;
+  z-index: 120;
   /* prevent body scroll bleed-through via JS overflow:hidden (ClueDetailModal/ColdOpenOverlay),
      but also block pointer events on background content */
   overscroll-behavior: contain;
@@ -686,6 +686,10 @@ textarea {
   justify-content: flex-end;
   gap: 8px;
   margin-top: 12px;
+}
+
+.system-dialog-actions button {
+  min-width: 84px;
 }
 
 @keyframes slideUpFade {
@@ -1822,6 +1826,15 @@ textarea {
   .bottom-tabs {
     width: calc(100% - 24px);
   }
+
+  .system-dialog-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .system-dialog-actions button {
+    width: 100%;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -1870,7 +1883,7 @@ textarea {
   padding: 14px 16px;
   border-radius: 6px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.9);
-  z-index: 2000;
+  z-index: 90;
   font-size: 0.85rem;
   color: #eee;
   text-align: left;

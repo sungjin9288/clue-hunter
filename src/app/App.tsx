@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import "../styles/mobile.css";
 import { GameProvider, useGame } from "./GameContext";
 import type { TabId } from "./state";
@@ -6,6 +6,7 @@ import { useSettings } from "./useSettings";
 import { useAchievement } from "./useAchievement";
 import { BUILD_VERSION } from "./version";
 import { playBeep } from "./audio";
+import { buildExportPayload, formatDuration, getNextActionGuide } from "./uiHelpers";
 
 import { CaseSelector } from "../components/CaseSelector";
 import { OverviewScreen } from "../screens/OverviewScreen";
@@ -32,52 +33,6 @@ const TABS: { id: TabId; icon: string; label: string }[] = [
 ];
 
 const INTRO_SEEN_PREFIX = "noir_mvp_intro_seen_";
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Pure helpers (no React dependency)
-// ─────────────────────────────────────────────────────────────────────────────
-
-function getNextActionGuide(params: {
-  cluesCount: number;
-  interrogationSuccessCount: number;
-  timelineFilledCount: number;
-  timelineTotal: number;
-  reportEvidenceCount: number;
-  reportEvidenceMin: number;
-  reportSubmitted: boolean;
-}): string {
-  if (params.cluesCount < 3)
-    return "다음 행동: 현장/문서 탭에서 시간 관련 단서를 3개 이상 모아 흐름을 잡으세요.";
-  if (params.interrogationSuccessCount < 1)
-    return "다음 행동: 심문 탭에서 확보한 단서를 제시해 진술 모순을 한 번 이상 끌어내세요.";
-  if (params.timelineFilledCount < params.timelineTotal)
-    return "다음 행동: 보드 탭에서 빈 타임라인 슬롯을 먼저 모두 채워보세요.";
-  if (params.reportEvidenceCount < params.reportEvidenceMin)
-    return `다음 행동: 보고서 근거 단서를 최소 ${params.reportEvidenceMin}장 첨부하세요.`;
-  if (!params.reportSubmitted)
-    return "다음 행동: 보고서를 제출해 현재 추론의 판정을 확인하세요.";
-  return "다음 행동: 사건을 재검토해 더 높은 정확도로 재도전할 수 있습니다.";
-}
-
-function formatDuration(seconds: number): string {
-  if (seconds <= 0) return "0m";
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  if (h <= 0) return `${m}m`;
-  return `${h}h ${m}m`;
-}
-
-function buildExportPayload(
-  buildVersion: string,
-  caseId: string,
-  saveData: unknown
-): string {
-  return JSON.stringify(
-    { buildVersion, exportedAt: new Date().toISOString(), caseId, saveData },
-    null,
-    2
-  );
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sub-components
@@ -178,22 +133,98 @@ function DialogOverlay({
   onCancel,
   dangerConfirm = false
 }: DialogOverlayProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const confirmButtonRef = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
+  const messageId = useId();
+
+  // Lock body scroll while system dialog is visible.
   useEffect(() => {
+    const { body } = document;
+    const scrollY = window.scrollY;
+    const prev = {
+      overflow: body.style.overflow,
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+      touchAction: body.style.touchAction
+    };
+
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
+    body.style.touchAction = "none";
+
+    return () => {
+      body.style.overflow = prev.overflow;
+      body.style.position = prev.position;
+      body.style.top = prev.top;
+      body.style.width = prev.width;
+      body.style.touchAction = prev.touchAction;
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
+
+  useEffect(() => {
+    const prevFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const focusConfirmButton = window.setTimeout(() => {
+      confirmButtonRef.current?.focus();
+    }, 0);
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && onCancel) {
         e.preventDefault();
         onCancel();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const modalEl = modalRef.current;
+      if (!modalEl) return;
+
+      const focusables = Array.from(
+        modalEl.querySelectorAll<HTMLElement>(
+          "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"
+        )
+      ).filter((el) => !el.hasAttribute("disabled"));
+      if (focusables.length === 0) {
+        e.preventDefault();
+        return;
+      }
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      window.clearTimeout(focusConfirmButton);
+      window.removeEventListener("keydown", handleKeyDown);
+      prevFocused?.focus();
+    };
   }, [onCancel]);
 
   return (
     <div className="modal-backdrop" onClick={onCancel ? onCancel : undefined}>
-      <div className="modal system-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-        <h3>{title}</h3>
-        <p className="muted">{message}</p>
+      <div
+        ref={modalRef}
+        className="modal system-dialog"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={messageId}
+      >
+        <h3 id={titleId}>{title}</h3>
+        <p id={messageId} className="muted">{message}</p>
         {payload && (
           <textarea
             className="system-dialog-textarea"
@@ -210,6 +241,7 @@ function DialogOverlay({
           )}
           <button
             type="button"
+            ref={confirmButtonRef}
             className={dangerConfirm ? "danger-outline" : "btn-primary"}
             onClick={onConfirm}
           >
@@ -582,6 +614,7 @@ function AppShell() {
           <button
             key={id}
             type="button"
+            data-testid={`tab-${id}`}
             className={activeTab === id ? "active" : ""}
             onClick={() => setActiveTab(id)}
           >

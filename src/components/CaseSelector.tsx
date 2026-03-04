@@ -34,7 +34,11 @@ export function CaseSelector() {
 
     return (
         <div className="toolbar-row case-selector-wrap">
-            <select value={selectedCaseId} onChange={(e) => setSelectedCaseId(e.target.value)}>
+            <select
+                data-testid="case-selector"
+                value={selectedCaseId}
+                onChange={(e) => setSelectedCaseId(e.target.value)}
+            >
                 {caseOptions.map((id) => {
                     const stats = campaignProgress.cases[id];
                     const meta = caseCatalog[id];

@@ -3,6 +3,9 @@ node_modules/
 
 # build output
 dist/
+playwright-report/
+test-results/
+.playwright-browsers/
 
 # logs
 npm-debug.log*

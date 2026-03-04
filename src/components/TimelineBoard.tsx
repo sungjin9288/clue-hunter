@@ -72,6 +72,7 @@ export function TimelineBoard({ caseData, obtainedClueIds, placement, onPlace, o
           return (
             <div
               key={slot.slotId}
+              data-testid={`timeline-slot-${slot.slotId}`}
               className={[
                 "slot",
                 isFilled ? "slot-filled" : "",
@@ -139,6 +140,7 @@ export function TimelineBoard({ caseData, obtainedClueIds, placement, onPlace, o
               return (
                 <button
                   key={clueId}
+                  data-testid={`timeline-chip-${clueId}`}
                   className="drag-chip draggable-item"
                   type="button"
                   draggable

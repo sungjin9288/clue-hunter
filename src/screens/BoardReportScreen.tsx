@@ -95,6 +95,8 @@ export function BoardReportScreen({
                   <input
                     type="radio"
                     name={q.qId}
+                    value={o.id}
+                    data-testid={`report-answer-${q.qId}-${o.id}`}
                     checked={saveData.reportAnswers[q.qId] === o.id}
                     onChange={() => onSetReportAnswer(q.qId, o.id)}
                   />
@@ -117,7 +119,7 @@ export function BoardReportScreen({
           </div>
         ))}
 
-        <details>
+        <details data-testid="report-evidence-panel">
           <summary>근거 단서 첨부</summary>
           <div className="evidence-grid">
             {saveData.obtainedClueIds.map((clueId) => {
@@ -127,6 +129,7 @@ export function BoardReportScreen({
                 <label key={clueId}>
                   <input
                     type="checkbox"
+                    data-testid={`report-evidence-${clueId}`}
                     checked={saveData.reportEvidenceClueIds.includes(clueId)}
                     onChange={() => onToggleEvidence(clueId)}
                   />
@@ -139,6 +142,7 @@ export function BoardReportScreen({
 
         <button
           type="button"
+          data-testid="report-submit-button"
           onClick={() =>
             onSubmit(
               ReportEngine.grade({

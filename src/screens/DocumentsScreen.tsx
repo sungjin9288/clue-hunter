@@ -38,6 +38,7 @@ export function DocumentsScreen({
           <button
             key={doc.docId}
             type="button"
+            data-testid={`doc-item-${doc.docId}`}
             className={`doc-item ${doc.docId === selected.docId ? "active" : ""}`}
             onClick={() => {
               onSelectDoc(doc.docId);
@@ -57,6 +58,7 @@ export function DocumentsScreen({
 
         <button
           type="button"
+          data-testid="doc-claim-button"
           disabled={selected.rewardClueIds.every((id) => obtainedSet.has(id))}
           onClick={() => onClaimDocClues(selected.docId, selected.rewardClueIds)}
         >

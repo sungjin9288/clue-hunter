@@ -73,6 +73,7 @@ export function SceneScreen({
               <ReactMarkdown>{h.descriptionMd}</ReactMarkdown>
               <button
                 type="button"
+                data-testid={`scene-hotspot-${h.hotspotId}`}
                 disabled={already}
                 onClick={() => onClaimHotspot(h.hotspotId, h.rewardClueIds)}
                 style={already ? { opacity: 0.45 } : { borderColor: "var(--accent)", color: "var(--accent)" }}
