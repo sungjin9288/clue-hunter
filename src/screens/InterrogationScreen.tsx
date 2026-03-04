@@ -34,6 +34,7 @@ export function InterrogationScreen({
   const characterId = selectedCharacterId ?? firstCharacterId;
 
   const [dragOverChoiceId, setDragOverChoiceId] = useState<string | null>(null);
+  const [selectedEvidenceClueId, setSelectedEvidenceClueId] = useState<string | null>(null);
   const [animState, setAnimState] = useState<"shake" | "flash" | null>(null);
   const [displayedText, setDisplayedText] = useState("");
   const [typingDone, setTypingDone] = useState(false);
@@ -70,7 +71,12 @@ export function InterrogationScreen({
 
   useEffect(() => {
     setDragOverChoiceId(null);
-  }, [characterId]);
+    setSelectedEvidenceClueId(null);
+  }, [characterId, node?.nodeId]);
+
+  const availableEvidenceClues = saveData.obtainedClueIds
+    .map((clueId) => caseData.clues.find((clue) => clue.clueId === clueId))
+    .filter((clue): clue is CaseSchemaV01["clues"][number] => Boolean(clue));
 
   // Typewriter effect: re-run whenever the node text changes
   useEffect(() => {
@@ -138,15 +144,14 @@ export function InterrogationScreen({
     }
   }, [node, characterId, currentNodeId, caseData, onAppendChatLog, onMoveNode, onGrantClues, onEvidenceSuccess, playSfx]);
 
-  const handleDropEvidence = (e: React.DragEvent, choiceId: string) => {
-    e.preventDefault();
-    setDragOverChoiceId(null);
-    const droppedClueId = e.dataTransfer.getData("text/plain");
-    if (!droppedClueId) return;
-    const droppedChoice = node?.choices.find((c) => c.choiceId === choiceId);
+  const submitEvidenceChoice = useCallback((choiceId: string, clueId: string) => {
+    if (!node) return;
+    const droppedChoice = node.choices.find((c) => c.choiceId === choiceId);
+    if (!droppedChoice?.evidenceCheck) return;
 
+    setSelectedEvidenceClueId(null);
     // Find dropped clue title for the log
-    const clueTitle = caseData.clues.find((c) => c.clueId === droppedClueId)?.title ?? droppedClueId;
+    const clueTitle = caseData.clues.find((c) => c.clueId === clueId)?.title ?? clueId;
     onAppendChatLog(characterId, {
       speaker: "player",
       text: `🔎 증거 제시: ${clueTitle}`,
@@ -158,7 +163,7 @@ export function InterrogationScreen({
       characterId,
       currentNodeId,
       choiceId,
-      presentedClueId: droppedClueId
+      presentedClueId: clueId
     });
 
     if (!applied.ok) {
@@ -216,8 +221,27 @@ export function InterrogationScreen({
         });
       }
       triggerAnim("flash");
-      playSfx("beep");
+      playSfx("fail");
     }
+  }, [
+    node,
+    caseData,
+    characterId,
+    currentNodeId,
+    onAppendChatLog,
+    onMoveNode,
+    onGrantClues,
+    onEvidenceFail,
+    onEvidenceSuccess,
+    playSfx
+  ]);
+
+  const handleDropEvidence = (e: React.DragEvent, choiceId: string) => {
+    e.preventDefault();
+    setDragOverChoiceId(null);
+    const droppedClueId = e.dataTransfer.getData("text/plain");
+    if (!droppedClueId) return;
+    submitEvidenceChoice(choiceId, droppedClueId);
   };
 
   const animClass = animState === "shake" ? "anim-shake" : animState === "flash" ? "anim-flash-red" : "";
@@ -227,7 +251,7 @@ export function InterrogationScreen({
     <section className={`panel ${animClass}`}>
       <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
         🎙️ 심문
-        <InlineHelp text="질문을 고르거나 단서를 드래그하여 증거를 제시하세요. 틀린 단서를 대면 신뢰도(❤️)가 깎입니다." />
+        <InlineHelp text="질문을 고르거나 단서를 드래그/선택해 증거를 제시하세요. 틀린 단서를 대면 신뢰도(❤️)가 깎입니다." />
       </h2>
 
       {/* Trust meters row */}
@@ -312,34 +336,81 @@ export function InterrogationScreen({
           )}
 
           {!isLocked && (
-            <div className="choices">
-              {node.choices.map((choice) => {
-                const isEvidence = !!choice.evidenceCheck;
-                const isDragOver = dragOverChoiceId === choice.choiceId;
-                return (
-                  <div
-                    key={choice.choiceId}
-                    className={`choice-card${isDragOver ? " drag-over" : ""}${isEvidence ? " evidence-choice" : ""}`}
-                    draggable={false}
-                    onDragOver={(e) => {
-                      if (!isEvidence) return;
-                      e.preventDefault();
-                      setDragOverChoiceId(choice.choiceId);
-                    }}
-                    onDragLeave={() => setDragOverChoiceId(null)}
-                    onDrop={(e) => isEvidence && handleDropEvidence(e, choice.choiceId)}
-                    onClick={() => !isEvidence && handleChoiceClick(choice.choiceId, choice.label)}
-                  >
-                    <span className="choice-label">{choice.label}</span>
-                    {isEvidence && (
-                      <span className="choice-hint">
-                        {isDragOver ? "✅ 여기에 놓으세요" : "🗂 단서를 여기로 드래그"}
-                      </span>
+            <>
+              {node.choices.some((choice) => Boolean(choice.evidenceCheck)) && (
+                <section className="evidence-picker">
+                  <p className="muted evidence-picker-title">
+                    증거 선택(탭) 또는 인벤토리에서 드래그
+                  </p>
+                  <div className="evidence-picker-grid">
+                    {availableEvidenceClues.length === 0 && (
+                      <span className="muted">제시 가능한 단서가 아직 없습니다.</span>
                     )}
+                    {availableEvidenceClues.map((clue) => (
+                      <button
+                        key={clue.clueId}
+                        type="button"
+                        className={`evidence-chip-btn${selectedEvidenceClueId === clue.clueId ? " active" : ""}`}
+                        onClick={() =>
+                          setSelectedEvidenceClueId((prev) => (prev === clue.clueId ? null : clue.clueId))
+                        }
+                      >
+                        {clue.title}
+                      </button>
+                    ))}
                   </div>
-                );
-              })}
-            </div>
+                </section>
+              )}
+
+              <div className="choices">
+                {node.choices.map((choice) => {
+                  const isEvidence = !!choice.evidenceCheck;
+                  const isDragOver = dragOverChoiceId === choice.choiceId;
+                  return (
+                    <div
+                      key={choice.choiceId}
+                      className={`choice-card${isDragOver ? " drag-over" : ""}${isEvidence ? " evidence-choice" : ""}`}
+                      draggable={false}
+                      onDragOver={(e) => {
+                        if (!isEvidence) return;
+                        e.preventDefault();
+                        setDragOverChoiceId(choice.choiceId);
+                      }}
+                      onDragLeave={() => setDragOverChoiceId(null)}
+                      onDrop={(e) => isEvidence && handleDropEvidence(e, choice.choiceId)}
+                      onClick={() => {
+                        if (!isEvidence) {
+                          handleChoiceClick(choice.choiceId, choice.label);
+                          return;
+                        }
+                        if (!selectedEvidenceClueId) {
+                          triggerAnim("flash");
+                          playSfx("fail");
+                          onAppendChatLog(characterId, {
+                            speaker: "system",
+                            text: "🗂 먼저 제시할 단서를 탭 선택하거나 드래그하세요.",
+                            type: "system"
+                          });
+                          return;
+                        }
+                        submitEvidenceChoice(choice.choiceId, selectedEvidenceClueId);
+                      }}
+                    >
+                      <span className="choice-label">{choice.label}</span>
+                      {isEvidence && (
+                        <span className="choice-hint">
+                          {isDragOver
+                            ? "✅ 여기에 놓으세요"
+                            : selectedEvidenceClueId
+                              ? "✅ 선택된 단서로 탭 제출 가능"
+                              : "🗂 단서를 여기로 드래그 또는 위에서 탭 선택"}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </>
       )}

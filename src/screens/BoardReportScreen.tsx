@@ -16,6 +16,7 @@ interface Props {
   onToggleEvidence: (clueId: string) => void;
   onUseHint: () => void;
   onSubmit: (result: GradeResult) => void;
+  onBackToMenu: () => void;
   onReset: () => void;
   gradeResult: GradeResult | null;
 }
@@ -30,11 +31,19 @@ export function BoardReportScreen({
   onToggleEvidence,
   onUseHint,
   onSubmit,
+  onBackToMenu,
   onReset,
   gradeResult
 }: Props) {
   if (saveData.reportSubmitted && gradeResult) {
-    return <CaseResultScreen caseData={caseData} gradeResult={gradeResult} onReset={onReset} />;
+    return (
+      <CaseResultScreen
+        caseData={caseData}
+        gradeResult={gradeResult}
+        onBackToMenu={onBackToMenu}
+        onReset={onReset}
+      />
+    );
   }
 
   const solved = TimelineEngine.isSolved(caseData, saveData.timelinePlacement);

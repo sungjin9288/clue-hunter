@@ -14,6 +14,7 @@ interface Props {
 export function TimelineBoard({ caseData, obtainedClueIds, placement, onPlace, onClear }: Props) {
   const clueMap = useMemo(() => new Map(caseData.clues.map((c) => [c.clueId, c])), [caseData]);
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
+  const [selectedClueId, setSelectedClueId] = useState<string | null>(null);
   const [dropError, setDropError] = useState<string>("");
   const [pulsedSlot, setPulsedSlot] = useState<string | null>(null);
 
@@ -26,6 +27,7 @@ export function TimelineBoard({ caseData, obtainedClueIds, placement, onPlace, o
     }
     setDropError("");
     onPlace(slotId, clueId);
+    setSelectedClueId(null);
     // trigger pulse
     setPulsedSlot(slotId);
     setTimeout(() => setPulsedSlot(null), 900);
@@ -40,15 +42,21 @@ export function TimelineBoard({ caseData, obtainedClueIds, placement, onPlace, o
       <h3 style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "0 0 4px 0" }}>
         <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
           📌 타임라인
-          <InlineHelp text="단서를 시간 순서에 맞게 슬롯으로 드래그해 사건의 재구성을 완성하세요." />
+          <InlineHelp text="단서를 시간 순서에 맞게 슬롯으로 배치하세요. 드래그가 어렵다면 하단 단서를 탭으로 선택한 뒤 슬롯을 탭해도 됩니다." />
         </span>
         <span style={{ fontSize: "0.8rem", color: allFilled ? "var(--success)" : "var(--muted)", fontWeight: "normal" }}>
           {filledCount}/{totalSlots} {allFilled ? "✅ 완성" : ""}
         </span>
       </h3>
       <p className="muted" style={{ margin: "0 0 12px 0", fontSize: "0.8rem" }}>
-        하단 단서를 슬롯에 드래그해서 배치하세요
+        하단 단서를 드래그하거나 탭 선택 후 슬롯 탭으로 배치하세요
       </p>
+
+      {selectedClueId && (
+        <p className="muted" style={{ margin: "0 0 8px 0", fontSize: "0.78rem" }}>
+          선택 단서: <strong>{clueMap.get(selectedClueId)?.title ?? selectedClueId}</strong> (슬롯을 탭해 배치)
+        </p>
+      )}
 
       {dropError && <p className="banner" style={{ color: "var(--danger)", marginBottom: 8 }}>{dropError}</p>}
 
@@ -76,6 +84,10 @@ export function TimelineBoard({ caseData, obtainedClueIds, placement, onPlace, o
                 const clueId = e.dataTransfer.getData("text/plain");
                 if (!clueId) return;
                 handleDrop(slot.slotId, clueId);
+              }}
+              onClick={() => {
+                if (!selectedClueId) return;
+                handleDrop(slot.slotId, selectedClueId);
               }}
             >
               <header>
@@ -125,22 +137,29 @@ export function TimelineBoard({ caseData, obtainedClueIds, placement, onPlace, o
               if (!clue) return null;
               const alreadyPlaced = Object.values(placement).includes(clueId);
               return (
-                <div
+                <button
                   key={clueId}
                   className="drag-chip draggable-item"
+                  type="button"
                   draggable
                   onDragStart={(e) => {
                     e.dataTransfer.setData("text/plain", clueId);
                     e.dataTransfer.effectAllowed = "copy";
                   }}
+                  onClick={() => setSelectedClueId((prev) => (prev === clueId ? null : clueId))}
                   style={{
                     opacity: alreadyPlaced ? 0.4 : 1,
                     borderColor: alreadyPlaced ? "var(--muted)" : "var(--accent)",
-                    background: alreadyPlaced ? "transparent" : "rgba(245,166,35,0.07)"
+                    background:
+                      selectedClueId === clueId
+                        ? "rgba(63,214,143,0.16)"
+                        : alreadyPlaced
+                          ? "transparent"
+                          : "rgba(245,166,35,0.07)"
                   }}
                 >
                   {alreadyPlaced ? "✓ " : ""}{clue.title}
-                </div>
+                </button>
               );
             })
           )}

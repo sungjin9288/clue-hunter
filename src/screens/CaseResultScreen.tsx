@@ -6,10 +6,11 @@ import type { GradeResult } from "../engine/ReportEngine";
 interface Props {
     caseData: CaseSchemaV01;
     gradeResult: GradeResult;
+    onBackToMenu: () => void;
     onReset: () => void;
 }
 
-export function CaseResultScreen({ caseData, gradeResult, onReset }: Props) {
+export function CaseResultScreen({ caseData, gradeResult, onBackToMenu, onReset }: Props) {
     const [showRank, setShowRank] = useState(false);
     const [showCulprit, setShowCulprit] = useState(false);
     const [showSummary, setShowSummary] = useState(false);
@@ -91,7 +92,7 @@ export function CaseResultScreen({ caseData, gradeResult, onReset }: Props) {
                     )}
 
                     <div className="result-actions">
-                        <button className="btn-primary btn-large" onClick={() => window.location.reload()}>
+                        <button className="btn-primary btn-large" onClick={onBackToMenu}>
                             사건 종료 (메인 메뉴)
                         </button>
                         <button className="btn-ghost" onClick={onReset}>

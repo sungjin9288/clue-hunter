@@ -23,6 +23,10 @@ export function CaseSelector() {
     const lockedCount = caseOptions.filter((id) => !caseUnlockMap[id]).length;
     const selectedStats = campaignProgress.cases[selectedCaseId];
     const selectedMeta = caseCatalog[selectedCaseId];
+    const selectedAttempts = selectedStats?.attempts ?? 0;
+    const selectedCompletions = selectedStats?.completedCount ?? 0;
+    const selectedBestRank = selectedStats?.bestRank ?? "-";
+    const selectedPlayTime = formatDuration(selectedStats?.totalPlaySeconds ?? 0);
     const firstClearLabel = selectedStats?.firstClearedAt
         ? new Date(selectedStats.firstClearedAt).toLocaleString()
         : "-";
@@ -35,26 +39,18 @@ export function CaseSelector() {
                     const stats = campaignProgress.cases[id];
                     const meta = caseCatalog[id];
                     const unlocked = caseUnlockMap[id];
-                    const labelBits = [meta?.label ?? id];
-
-                    if (!unlocked) {
-                        labelBits.push("LOCKED");
-                        if (meta?.unlockBy) labelBits.push(`Clear:${meta.unlockBy}`);
-                    } else {
-                        if ((stats?.completedCount ?? 0) > 0) labelBits.push("CLEAR");
-                        if ((stats?.bestRank ?? null) === "S") labelBits.push("PERFECT");
-                        if (stats?.challengeFlags?.noHintClear) labelBits.push("NO-HINT");
-                        if (stats?.challengeFlags?.tightEvidenceClear) labelBits.push("TIGHT");
-                        if (stats?.bestRank) labelBits.push(`R:${stats.bestRank}`);
-                        if (stats?.attempts) labelBits.push(`Try:${stats.attempts}`);
-                        if (stats?.totalPlaySeconds) {
-                            labelBits.push(`T:${formatDuration(stats.totalPlaySeconds)}`);
-                        }
-                    }
+                    const shortStatus = !unlocked
+                        ? "🔒"
+                        : (stats?.completedCount ?? 0) > 0
+                            ? `✅${stats?.bestRank ? ` ${stats.bestRank}` : ""}`
+                            : (stats?.attempts ?? 0) > 0
+                                ? "• 진행중"
+                                : "";
+                    const label = [meta?.label ?? id, shortStatus].filter(Boolean).join(" ");
 
                     return (
                         <option key={id} value={id} disabled={!unlocked}>
-                            {labelBits.join(" · ")}
+                            {label}
                         </option>
                     );
                 })}
@@ -69,7 +65,11 @@ export function CaseSelector() {
                 className="muted case-meta-line"
                 title={`First Clear: ${firstClearLabel} | Perfect Clears: ${perfectCount}`}
             >
-                {selectedMeta?.label ?? selectedCaseId} · First {firstClearLabel} · Perfect x{perfectCount}
+                {selectedMeta?.label ?? selectedCaseId} · 시도 {selectedAttempts} · 완료 {selectedCompletions}
+                {" · "}최고 {selectedBestRank} · 플레이 {selectedPlayTime}
+            </small>
+            <small className="muted case-meta-line">
+                First {firstClearLabel} · Perfect x{perfectCount}
             </small>
         </div>
     );

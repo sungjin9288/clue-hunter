@@ -483,6 +483,10 @@ function AppShell() {
               showAchievement("HINT USED", "bad");
             }}
             onSubmit={submitReport}
+            onBackToMenu={() => {
+              setSelectedClueId(null);
+              setActiveTab("overview");
+            }}
             onReset={resetSave}
             gradeResult={gradeResult}
           />

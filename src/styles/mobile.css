@@ -328,6 +328,11 @@ button:disabled {
   white-space: nowrap;
 }
 
+.drag-chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .slot-grid {
   grid-template-columns: 1fr;
 }
@@ -744,7 +749,7 @@ button:disabled {
 }
 
 .droppable-target.drag-over::after {
-  content: "여기에 증거 제시";
+  content: "여기에 배치";
   position: absolute;
   inset: 0;
   display: grid;
@@ -1030,6 +1035,38 @@ button:disabled {
 
 .trust-locked-panel p {
   margin: 0 0 4px 0;
+}
+
+.evidence-picker {
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.evidence-picker-title {
+  margin: 0 0 8px 0;
+  font-size: 0.78rem;
+}
+
+.evidence-picker-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.evidence-chip-btn {
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 0.76rem;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.evidence-chip-btn.active {
+  border-color: var(--success);
+  color: var(--success);
+  background: rgba(63, 214, 143, 0.12);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -1638,4 +1675,26 @@ button:disabled {
 
 .inline-help-popover p {
   margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .achievement-overlay.anim-stamp,
+  .anim-shake,
+  .anim-flash-red,
+  .slot-filled,
+  .connection-card,
+  .connection-card-new,
+  .reveal-fade-in,
+  .reveal-fade-up {
+    animation: none !important;
+  }
 }
