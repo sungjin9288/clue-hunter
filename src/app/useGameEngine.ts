@@ -195,7 +195,7 @@ export interface GameEngineValue {
   consumeClearAchievements: () => void;
   registerInterrogationSuccess: () => void;
   decreaseTrust: (characterId: string) => void;
-  discoverConnection: (connectionId: string) => void;
+  discoverConnection: (connectionId: string, revealClueIds?: string[]) => void;
   appendChatLog: (characterId: string, entry: ChatLogEntry) => void;
   resetSave: () => void;
 }
@@ -429,12 +429,20 @@ export function useGameEngine(): GameEngineValue {
       };
     });
 
-  const discoverConnection = (connectionId: string) =>
+  const discoverConnection = (connectionId: string, revealClueIds: string[] = []) =>
     patch((prev) => {
-      if (prev.discoveredConnectionIds.includes(connectionId)) return prev;
+      const alreadyDiscovered = prev.discoveredConnectionIds.includes(connectionId);
+      const hasNewReveal = revealClueIds.some((clueId) => !prev.obtainedClueIds.includes(clueId));
+      if (alreadyDiscovered && !hasNewReveal) return prev;
+
       return {
         ...prev,
-        discoveredConnectionIds: [...prev.discoveredConnectionIds, connectionId]
+        discoveredConnectionIds: alreadyDiscovered
+          ? prev.discoveredConnectionIds
+          : [...prev.discoveredConnectionIds, connectionId],
+        obtainedClueIds: hasNewReveal
+          ? dedupe([...prev.obtainedClueIds, ...revealClueIds])
+          : prev.obtainedClueIds
       };
     });
 

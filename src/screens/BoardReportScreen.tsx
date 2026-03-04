@@ -11,7 +11,7 @@ interface Props {
   saveData: CaseSaveV01;
   onPlace: (slotId: string, clueId: string) => void;
   onClear: (slotId: string) => void;
-  onDiscover: (connectionId: string) => void;
+  onDiscover: (connectionId: string, revealClueIds?: string[]) => void;
   onSetReportAnswer: (qId: string, optionId: string) => void;
   onToggleEvidence: (clueId: string) => void;
   onUseHint: () => void;

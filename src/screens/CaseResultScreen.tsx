@@ -23,9 +23,14 @@ export function CaseResultScreen({ caseData, gradeResult, onReset }: Props) {
     }, []);
 
     const isSuccess = gradeResult.passed === gradeResult.total;
-    const culpritQ = caseData.report.questions.find((q) => q.qId === "culprit");
-    const culpritId = culpritQ?.correctOptionId;
-    const culpritName = caseData.characters.suspects.find((s) => s.id === culpritId)?.name ?? "알 수 없음";
+    const culpritQ =
+        caseData.report.questions.find((q) => q.qId === "q_killer") ??
+        caseData.report.questions.find((q) => q.qId === "culprit") ??
+        caseData.report.questions[0];
+    const culpritName =
+        culpritQ?.options.find((o) => o.id === culpritQ.correctOptionId)?.label ??
+        caseData.characters.suspects.find((s) => s.id === culpritQ?.correctOptionId)?.name ??
+        "알 수 없음";
 
     return (
         <div className="case-result-screen">

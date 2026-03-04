@@ -143,6 +143,7 @@ export function InterrogationScreen({
     setDragOverChoiceId(null);
     const droppedClueId = e.dataTransfer.getData("text/plain");
     if (!droppedClueId) return;
+    const droppedChoice = node?.choices.find((c) => c.choiceId === choiceId);
 
     // Find dropped clue title for the log
     const clueTitle = caseData.clues.find((c) => c.clueId === droppedClueId)?.title ?? droppedClueId;
@@ -186,10 +187,35 @@ export function InterrogationScreen({
 
     if (applied.evidenceSuccess === true) {
       onEvidenceSuccess();
+      const successReaction = droppedChoice?.evidenceCheck?.reactionText?.success;
+      if (successReaction) {
+        onAppendChatLog(characterId, {
+          speaker: "system",
+          text: successReaction,
+          type: "system"
+        });
+      }
       onAppendChatLog(characterId, { speaker: "system", text: "✅ 증거 제시 성공! 상대가 동요합니다.", type: "system" });
       triggerAnim("shake");
       playSfx("success");
     } else {
+      // Wrong evidence should always reduce trust.
+      onEvidenceFail(characterId);
+      const failReaction = droppedChoice?.evidenceCheck?.reactionText?.fail;
+      if (failReaction) {
+        onAppendChatLog(characterId, {
+          speaker: "system",
+          text: failReaction,
+          type: "system"
+        });
+      } else {
+        onAppendChatLog(characterId, {
+          speaker: "system",
+          text: "❌ 단서 제시 실패. 신뢰도가 하락합니다.",
+          type: "system"
+        });
+      }
+      triggerAnim("flash");
       playSfx("beep");
     }
   };

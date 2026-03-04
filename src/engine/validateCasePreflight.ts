@@ -21,6 +21,7 @@ export function validateCasePreflight(c: CaseSchemaV01): PreflightResult {
   const scenes = c.scenes ?? [];
   const documents = c.documents ?? [];
   const clues = c.clues ?? [];
+  const clueConnections = c.clueConnections ?? [];
   const interrogations = c.interrogations ?? [];
   const timelineSlots = c.timeline?.slots ?? [];
   const timelineSolution = c.timeline?.solution ?? [];
@@ -30,6 +31,7 @@ export function validateCasePreflight(c: CaseSchemaV01): PreflightResult {
   const hotspotIds = new Set<string>();
   const docIds = new Set<string>();
   const clueIds = new Set<string>();
+  const clueConnectionIds = new Set<string>();
   const nodeIds = new Set<string>();
   const slotIds = new Set<string>();
   const characterIds = new Set<string>();
@@ -55,6 +57,38 @@ export function validateCasePreflight(c: CaseSchemaV01): PreflightResult {
 
   for (const clue of clues) {
     pushUniqueError(clueIds, clue.clueId, "clueId", errors);
+  }
+
+  for (const connection of clueConnections) {
+    pushUniqueError(clueConnectionIds, connection.connectionId, "clueConnection.connectionId", errors);
+    if ((connection.clueIds ?? []).length !== 2) {
+      errors.push(
+        `[Rule] clueConnection(${connection.connectionId}).clueIds must contain exactly 2 clueIds`
+      );
+    }
+
+    const [leftClueId, rightClueId] = connection.clueIds ?? [];
+    if (leftClueId && !clueIds.has(leftClueId)) {
+      errors.push(
+        `[Missing Ref] clueConnection(${connection.connectionId}).clueIds contains unknown clueId=${leftClueId}`
+      );
+    }
+    if (rightClueId && !clueIds.has(rightClueId)) {
+      errors.push(
+        `[Missing Ref] clueConnection(${connection.connectionId}).clueIds contains unknown clueId=${rightClueId}`
+      );
+    }
+    if (leftClueId && rightClueId && leftClueId === rightClueId) {
+      errors.push(`[Rule] clueConnection(${connection.connectionId}).clueIds must be two distinct clues`);
+    }
+
+    for (const revealClueId of connection.revealClueIds ?? []) {
+      if (!clueIds.has(revealClueId)) {
+        errors.push(
+          `[Missing Ref] clueConnection(${connection.connectionId}).revealClueIds contains unknown clueId=${revealClueId}`
+        );
+      }
+    }
   }
 
   for (const interrogation of interrogations) {

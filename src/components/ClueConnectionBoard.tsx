@@ -7,7 +7,7 @@ import { InlineHelp } from "../components/InlineHelp";
 interface Props {
     caseData: CaseSchemaV01;
     saveData: CaseSaveV01;
-    onDiscover: (connectionId: string) => void;
+    onDiscover: (connectionId: string, revealClueIds?: string[]) => void;
 }
 
 export function ClueConnectionBoard({ caseData, saveData, onDiscover }: Props) {
@@ -40,7 +40,7 @@ export function ClueConnectionBoard({ caseData, saveData, onDiscover }: Props) {
         );
 
         if (match && !discovered.has(match.connectionId)) {
-            onDiscover(match.connectionId);
+            onDiscover(match.connectionId, match.revealClueIds ?? []);
             setFlashConnectionId(match.connectionId);
             setTimeout(() => setFlashConnectionId(null), 2000);
         }
